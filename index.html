@@ -37,7 +37,9 @@ const mk=o=>Object.assign({id:uid(),kind:'out',desc:'',amt:0,date:T(),cat:'Outro
 const def=()=>({open:{date:T(),bal:0},items:[],cards:[],cats:['Salário','Renda extra','Reembolso','Fixa','Variável','Cartão','Empréstimo','Casa','Combustível','Alimentação','Assinatura','Contas','Imposto','Compras','Saúde','Educação','Lazer'],lastBackup:null});
 let S;try{S=JSON.parse(localStorage.getItem(KEY))||def()}catch(e){S=def()}
 let tab=0,F={m:'',cat:'',own:'',st:'',q:''},CM=T().slice(0,7),PMonth=T().slice(0,7),HZ=12,PM=null;
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('Não foi possível salvar: '+e.message+'. Exporte um backup.')}render()}
+function persistState(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){alert('Não foi possível salvar automaticamente: '+e.message+'. Exporte um backup.')}}
+function save(){persistState();render()}
+setInterval(()=>{persistState();},60000);
 /* motor financeiro */
 function occ(it,upto){const o=[];for(let k=0;;k++){let dt;
  if(it.rec==='mensal')dt=addM(it.date,k);else if(it.rec==='anual')dt=addM(it.date,12*k);else if(it.rec==='semanal')dt=addD(it.date,7*k);else if(it.rec==='quinzenal')dt=addD(it.date,14*k);else if(it.rec==='diario')dt=addD(it.date,k);else dt=it.date;
@@ -111,7 +113,7 @@ function sv(id,dt){const g=x=>$('#'+x).value,amt=toC(g('fa')),desc=g('fd').trim(
   else{const od=it.done[dt];Object.assign(it,o);if(!it.rec){it.done={};if(dn)it.done[date]=true;it.ov={}}else if(dn!==!!od){it.done[dt]=dn}}}
  closeM();save()}
 function openParc(){modal(`<h2>Nova compra parcelada</h2><div class="f">${L('','Descrição',I('pd',''),1)}${L('','Valor total (R$)',I('pt',''))}${L('','Entrada (R$)',I('pe','0,00'))}${L('','Nº parcelas',I('pn','1','number','min="1"'))}${L('','Data 1ª parcela',I('p1','', 'date'))}${L('','Categoria',`<select id="pc">${S.cats.map(c=>`<option>${esc(c)}</option>`).join('')}</select>`,1)}${L('','Responsável',`<select id="po"><option>Douglas</option><option>Bianca</option><option>Compartilhado</option><option>Outro</option></select>`,1)}${L('','Cartão',`<select id="pm"><option value="(conta/dinheiro)" selected>(conta/dinheiro)</option>${S.cards.map(c=>`<option>${esc(c.name)}</option>`).join('')}</select>`,1)}${L('','Valor da parcela (R$)',I('pv','0,00'))}${L('','',`<button class="p" onclick="svParc()">Salvar</button> <button onclick="closeM()">Cancelar</button>`,1)}</div>`)}
-function svParc(){const g=x=>$('#'+x).value,desc=g('pd').trim(),n=Math.max(1,+g('pn')||1),ent=toC(g('pe')),tot=toC(g('pt'))+toC(g('pj')),d1=g('p1');if(!desc||tot<=0||!d1||ent>=tot&&n>0&&tot-ent<=[...])return alert('Informe descrição, valor válido e data.');
+function svParc(){const g=x=>$('#'+x).value,desc=g('pd').trim(),n=Math.max(1,+g('pn')||1),ent=toC(g('pe')),tot=toC(g('pt'))+toC(g('pj')),d1=g('p1');if(!desc||tot<=0||!d1||ent>=tot&&n>0&&tot-ent<=0)return alert('Informe descrição, valor válido e data.');
  const rest=tot-ent,pv=toC(g('pv')),base=Math.floor(rest/n),grp=uid(),b={cat:g('pc'),own:g('po'),card:g('pm').startsWith('(')?'':'',grp,n};
  if(ent>0)S.items.push(mk({...b,desc:desc+' (entrada)',amt:ent,date:d1,k:0}));
  for(let k=1;k<=n;k++){const a=pv>0?pv:(k===1?rest-base*(n-1):base);S.items.push(mk({...b,desc:`${desc} (parcela)`,amt:a,date:addM(d1,k-1),k}))}closeM();save()}
