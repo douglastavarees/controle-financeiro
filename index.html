@@ -6,26 +6,25 @@
   <meta name="color-scheme" content="light">
   <title>Finance Hub</title>
   <style>
-    :root{--bg:#f5f6f8;--c:#fff;--t:#1d2433;--m:#6b7385;--b:#e2e5ec;--p:#1f4fd8;--g:#12805c;--r:#c8352f;--y:#b7791f;color-scheme:light}
-    @media(prefers-color-scheme:dark){:root{--bg:#f5f6f8;--c:#fff;--t:#1d2433;--m:#6b7385;--b:#e2e5ec;--p:#1f4fd8;--g:#12805c;--r:#c8352f;--y:#b7791f;color-scheme:light}}
-    *{box-sizing:border-box}body{margin:0;font:14px system-ui,Arial,sans-serif;background:var(--bg);color:var(--t);color-scheme:light}
+    :root{--bg:#f5f7fb;--c:#fff;--t:#1f2937;--m:#5d6472;--b:#e1e6ef;--p:#2957d6;--g:#15804d;--r:#c63b39;--y:#b57a1c;color-scheme:light}
+    *{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,Arial,sans-serif;background:var(--bg);color:var(--t);color-scheme:light}
     nav{display:flex;gap:4px;overflow-x:auto;background:var(--c);border-bottom:1px solid var(--b);padding:8px;position:sticky;top:0;z-index:5}
-    nav button{white-space:nowrap}nav .on{background:var(--p);color:#fff;border-color:var(--p)}
-    main{max-width:1100px;margin:0 auto;padding:14px}
-    button,input,select,textarea{font:inherit;color:var(--t);background:var(--c);border:1px solid var(--b);border-radius:6px;padding:6px 10px}
-    button{cursor:pointer}button.p{background:var(--p);color:#fff;border-color:var(--p)}button.s{padding:2px 7px;font-size:12px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
-    .card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:12px;margin-bottom:12px}
-    .k{color:var(--m);font-size:12px}.v{font-size:20px;font-weight:600;margin-top:2px}
+    nav button{white-space:nowrap;font-size:14px}nav .on{background:var(--p);color:#fff;border-color:var(--p)}
+    main{max-width:1100px;margin:0 auto;padding:16px}
+    button,input,select,textarea{font:inherit;color:var(--t);background:var(--c);border:1px solid var(--b);border-radius:6px;padding:7px 11px;font-size:15px}
+    button{cursor:pointer}button.p{background:var(--p);color:#fff;border-color:var(--p)}button.s{padding:3px 8px;font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+    .card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:14px;margin-bottom:14px}
+    .k{color:var(--m);font-size:13px}.v{font-size:22px;font-weight:600;margin-top:2px}
     .pos{color:var(--g)}.neg{color:var(--r)}.warn{color:var(--y)}
-    table{width:100%;border-collapse:collapse}th,td{padding:6px 8px;border-bottom:1px solid var(--b);text-align:left}th{color:var(--m);font-weight:500;font-size:12px}
+    table{width:100%;border-collapse:collapse}th,td{padding:7px 9px;border-bottom:1px solid var(--b);text-align:left;font-size:15px}th{color:var(--m);font-weight:600;font-size:13px}
     td.n,th.n{text-align:right;white-space:nowrap}tr.bad td{background:rgba(200,53,47,.08)}.w{overflow-x:auto}
     .bar{height:8px;border-radius:4px;background:var(--p);min-width:1px}.bar.o{background:var(--r)}
-    .al{padding:8px 10px;border-left:3px solid var(--y);background:var(--bg);margin:6px 0;border-radius:4px}.al.e{border-color:var(--r)}
+    .al{padding:9px 11px;border-left:3px solid var(--y);background:var(--bg);margin:8px 0;border-radius:4px;font-size:15px}.al.e{border-color:var(--r)}
     #modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:20px;z-index:9}
     #modal .box{background:var(--c);border-radius:12px;padding:16px;width:100%;max-width:560px}
-    .f{display:grid;grid-template-columns:1fr 1fr;gap:8px}.f label{display:flex;flex-direction:column;font-size:12px;color:var(--m);gap:3px}.f .full{grid-column:1/-1}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}h2{margin:4px 0 10px;font-size:17px}
+    .f{display:grid;grid-template-columns:1fr 1fr;gap:8px}.f label{display:flex;flex-direction:column;font-size:13px;color:var(--m);gap:3px}.f .full{grid-column:1/-1}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}h2{margin:4px 0 10px;font-size:19px}
     .lock{position:fixed;inset:0;background:rgba(12,15,20,.82);display:flex;align-items:center;justify-content:center;z-index:30;padding:20px}
     .lock-box{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:24px;max-width:420px;width:100%}
     .hid{display:none!important}
@@ -99,7 +98,7 @@
       return Math.round(parseFloat(s) * 100) || 0;
     };
     const esc = s => String(s ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    const mk = o => Object.assign({ id: uid(), kind: 'out', desc: '', amt: 0, date: T(), cat: 'Outros', own: 'Douglas', scope: 'pessoal', pct: 100, card: '', rec: '', end: '', done: {}, skip: {}, ov: {}, grp: '', k: 0, n: 0 }, o);
+    const mk = o => Object.assign({ id: uid(), kind: 'out', desc: '', amt: 0, date: T(), cat: 'Outros', own: 'Douglas', scope: 'pessoal', pct: 100, card: '', rec: '', end: '', done: {}, skip: {}, ov: {} }, o);
     const def = () => ({ open: { date: T(), bal: 0 }, items: [], cards: [], cats: ['Salário', 'Renda extra', 'Reembolso', 'Fixa', 'Variável', 'Cartão', 'Empréstimo', 'Casa', 'Combustível', 'Alimentação', 'Lazer', 'Saúde', 'Educação', 'Transporte', 'Outros'], lastBackup: '' });
 
     function normalizeState(raw) {
@@ -254,15 +253,15 @@
       const cart = c.ev.filter(o => eff(o) < 0 && (o.it.card || o.it.cat === 'Cartão' || o.it.cat === 'Empréstimo')).reduce((s, o) => s - eff(o), 0);
 
       const kp = (k, v, x = '') => `<div class="card" style="margin:0"><div class="k">${k}</div><div class="v ${x}">${v}</div></div>`;
-      let h = `<div class="grid">${kp('Saldo atual (baixas)', R(atual()), cl(atual()))}${kp('Entradas do mês', R(c.inn))}${kp('Saídas do mês', R(c.out))}${kp('Saldo previsto fim do mês', R(c.fim))}${kp('Despesas fixas (mês)', R(fx))}${kp('Despesas variáveis (mês)', R(va))}${kp('Parcelas no mês', R(pa))}${kp('Parcelas futuras (24 meses)', R(fut))}${kp('Cartões e dívidas (mês)', R(cart))}`;
+      let h = `<div class="grid">${kp('Saldo atual (baixas)', R(atual()), cl(atual()))}${kp('Entradas do mês', R(c.inn))}${kp('Saídas do mês', R(c.out))}${kp('Saldo previsto fim do mês', R(c.fim))}</div>`;
       h += '<div class="card"><h2>Alertas</h2>' + alerts(rows) + '</div>';
       const mx = Math.max(1, ...rows.slice(0, 6).flatMap(r => [r.inn, r.out]));
-      h += '<div class="card"><h2>Entradas e saídas (6 meses)</h2>' + rows.slice(0, 6).map(r => `<div style="margin-bottom:8px"><div class="k">${ML(r.k)}: <span class="pos">${R(r.inn)}</span> / <span class="neg">${R(r.out)}</span></div><div class="bar" style="width:${Math.max(8, r.inn * 100 / mx)}%"></div><div class="bar o" style="width:${Math.max(8, r.out * 100 / mx)}%"></div></div>`).join('') + '</div>';
+      h += '<div class="card"><h2>Entradas e saídas (6 meses)</h2>' + rows.slice(0, 6).map(r => `<div style="margin-bottom:8px"><div class="k">${ML(r.k)}: <span class="pos">${R(r.inn)}</span> / <span class="neg">${R(r.out)}</span></div><div class="bar" style="width:${r.inn * 100 / mx}%"></div><div class="bar o" style="width:${r.out * 100 / mx}%"></div></div>`).join('') + '</div>';
 
       const cats = {};
       c.ev.filter(o => eff(o) < 0).forEach(o => cats[o.it.cat] = (cats[o.it.cat] || 0) - eff(o));
       const ce = Object.entries(cats).sort((a, b) => b[1] - a[1]);
-      h += '<div class="card"><h2>Gastos por categoria no mês</h2>' + (ce.length ? ce.map(([k, v]) => `<div class="k">${esc(k)}: ${R(v)}</div><div class="bar" style="width:${v * 100 / ce[0][1]}%"></div>`).join('') : '<span class="k">Sem dados.</span>') + '</div>';
+      h += '<div class="card"><h2>Gastos por categoria no mês</h2>' + (ce.length ? ce.map(([k, v]) => `<div class="k">${esc(k)}: ${R(v)}</div><div class="bar" style="width:${v * 100 / ce[0][1]}%"></div>`).join('') : '<span class="k">Nenhuma despesa.</span>') + '</div>';
       return h;
     }
 
@@ -286,19 +285,14 @@
     const opt = (l, v) => l.map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('');
 
     function vLanc() {
-      let ev = S.items.flatMap(i => occ(i, addM(MS(), 24))).filter(o => (!F.m || o.dt.slice(0, 7) === F.m) && (!F.cat || o.it.cat === F.cat) && (!F.own || o.it.own === F.own) && (!F.st || st(o) === F.st) && (!F.q || o.it.desc.toLowerCase().includes(F.q.toLowerCase())));
+      let ev = S.items.flatMap(i => occ(i, addM(MS(), 24))).filter(o => (!F.m || o.dt.slice(0, 7) === F.m) && (!F.cat || o.it.cat === F.cat) && (!F.own || o.it.own === F.own) && (!F.st || st(o) === F.st) && (!F.q || `${o.it.desc} ${o.it.cat} ${o.it.own}`.toLowerCase().includes(F.q.toLowerCase()))).sort(cmp);
       const n = ev.length; ev = ev.slice(0, 400);
-      return `<h2>Lançamentos e entradas</h2><div class="row"><button class="p" onclick="openForm()">Novo lançamento</button><button onclick="openForm(null,null,'in')">Nova entrada</button>
-      <input type="month" value="${F.m}" onchange="F.m=this.value;render()"><select onchange="F.cat=this.value;render()"><option value="">Categoria</option>${opt(S.cats, F.cat)}</select>
-      <select onchange="F.own=this.value;render()"><option value="">Responsável</option>${opt(['Douglas', 'Bianca', 'Compartilhado', 'Outro'], F.own)}</select>
-      <select onchange="F.st=this.value;render()"><option value="">Situação</option>${opt(['Previsto', 'Pago', 'Recebido', 'Atrasado'], F.st)}</select><input placeholder="Buscar" value="${esc(F.q)}" oninput="F.q=this.value;render()"></div>
-      <div class="card w"><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Resp.</th><th>Meio</th><th class="n">Valor</th><th>Situação</th><th></th></tr>${ev.map(o => { const i = o.it; const cls = eff(o) < 0 ? 'neg' : 'pos'; return `<tr><td>${D(o.dt)}</td><td>${esc(i.desc)}</td><td>${esc(i.cat)}</td><td>${esc(i.own)}</td><td>${esc(i.card || 'Dinheiro')}</td><td class="n ${cls}">${R(Math.abs(eff(o)))}</td><td>${st(o)}</td><td><button class="s" onclick="openForm('${i.id}','${o.dt}')">✎</button> <button class="s" onclick="rm('${i.id}','${o.dt}')">🗑</button></td></tr>`; }).join('')}</table>${n ? '' : '<div class="k" style="padding-top:10px">Nenhum lançamento encontrado.</div>'}</div>`;
+      return `<h2>Lançamentos e entradas</h2><div class="row"><button class="p" onclick="openForm()">Novo lançamento</button><button onclick="openForm(null,null,'in')">Nova entrada</button><input type="month" value="${F.m}" onchange="F.m=this.value;render()"><select onchange="F.cat=this.value;render()"><option value="">Categoria</option>${opt(S.cats, F.cat)}</select><select onchange="F.own=this.value;render()"><option value="">Responsável</option>${opt(['Douglas', 'Bianca', 'Compartilhado', 'Outro'], F.own)}</select><select onchange="F.st=this.value;render()"><option value="">Situação</option>${opt(['Previsto', 'Pago', 'Recebido', 'Atrasado'], F.st)}</select><input placeholder="Buscar" value="${esc(F.q)}" oninput="F.q=this.value;render()"></div>${n > ev.length ? `<div class="k">Mostrando 400 de ${n} lançamentos.</div>` : ''}<div class="card w"><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Resp.</th><th>Meio</th><th class="n">Valor</th><th>Situação</th><th></th></tr>${ev.map(o => { const i = o.it; const val = eff(o); return `<tr ${o.done ? '' : ''}><td>${D(o.dt)}</td><td>${esc(i.desc)}</td><td>${esc(i.cat)}</td><td>${esc(i.own)}</td><td>${esc(i.card || '—')}</td><td class="n ${val < 0 ? 'neg' : 'pos'}">${R(val)}</td><td>${st(o)}</td><td><button class="s" onclick="openForm('${i.id}','${o.dt}')">Editar</button> <button class="s" onclick="rm('${i.id}','${o.dt}')">Excluir</button></td></tr>`; }).join('') || '<tr><td colspan="8"><span class="k">Nenhum lançamento.</span></td></tr>'}</table></div>`;
     }
 
     function vProj() {
       const rows = proj(HZ);
-      return `<h2>Projeção de saldo</h2><div class="row"><span class="k">Horizonte:</span><select onchange="HZ=+this.value;PM=null;render()">${[6, 12, 24, 36].map(n => `<option value="${n}" ${n === HZ ? 'selected' : ''}>${n} meses</option>`).join('')}</select></div>
-      <div class="card w"><table><tr><th>Mês</th><th class="n">Saldo inicial</th><th class="n">Entradas previstas</th><th class="n">Saídas previstas</th><th class="n">Saldo final</th></tr>${rows.map(r => `<tr><td>${ML(r.k)}</td><td class="n">${R(r.ini)}</td><td class="n pos">${R(r.inn)}</td><td class="n neg">${R(r.out)}</td><td class="n ${cl(r.fim)}">${R(r.fim)}</td></tr>`).join('')}</table></div>`;
+      return `<h2>Projeção de saldo</h2><div class="row"><span class="k">Horizonte:</span><select onchange="HZ=+this.value;PM=null;render()">${[6, 12, 24, 36].map(n => `<option value="${n}" ${n === HZ ? 'selected' : ''}>${n} meses</option>`).join('')}</select></div><div class="card w"><table><tr><th>Mês</th><th class="n">Saldo inicial</th><th class="n">Entradas previstas</th><th class="n">Saídas previstas</th><th class="n">Saldo final</th></tr>${rows.map(r => `<tr><td>${ML(r.k)}</td><td class="n">${R(r.ini)}</td><td class="n pos">${R(r.inn)}</td><td class="n neg">${R(r.out)}</td><td class="n ${r.fim < 0 ? 'neg' : 'pos'}">${R(r.fim)}</td></tr>`).join('')}</table></div>`;
     }
 
     function groups() {
@@ -309,30 +303,22 @@
 
     function vParc() {
       const gs = groups();
-      return `<h2>Compras parceladas</h2><div class="row"><button class="p" onclick="openParc()">Nova compra parcelada</button></div><div class="card w"><table><tr><th>Compra</th><th>Parcelas</th><th>Valor</th><th>Restante</th><th></th></tr>${gs.length ? gs.map(([id, l]) => {
-        const paid = l.filter(i => i.done[i.date]).length;
-        const rem = l.filter(i => !i.done[i.date]).reduce((s, i) => s + i.amt, 0);
-        const total = l.reduce((s, i) => s + i.amt, 0);
-        return `<tr><td>${esc(l[0].desc.replace(/ \(.*$/, ''))}</td><td>${paid}/${l.length}</td><td>${R(total)}</td><td>${R(rem)}</td><td><button class="s" onclick="gQuit('${id}')">Quitar</button></td></tr>`;
-      }).join('') : '<tr><td colspan="5"><span class="k">Nenhuma compra parcelada.</span></td></tr>'}</table></div>`;
+      return `<h2>Compras parceladas</h2><div class="row"><button class="p" onclick="openParc()">Nova compra parcelada</button></div><div class="card w"><table><tr><th>Compra</th><th>Parcelas</th><th>Total</th><th>Restante</th><th>Ações</th></tr>${gs.length ? gs.map(([id, l]) => { const paid = l.filter(i => i.done[i.date]).length; const rem = l.filter(i => !i.done[i.date]).reduce((s, i) => s + i.amt, 0); const total = l.reduce((s, i) => s + i.amt, 0); return `<tr><td>${esc(l[0].desc.replace(/ \(.*$/, ''))}</td><td>${paid}/${l.length}</td><td>${R(total)}</td><td>${R(rem)}</td><td><button class="s" onclick="gQuit('${id}')">Quitar</button> <button class="s" onclick="gAlt('${id}')">Ajustar</button> <button class="s" onclick="gDel('${id}')">Excluir</button></td></tr>`; }).join('') : '<tr><td colspan="5"><span class="k">Nenhuma compra parcelada.</span></td></tr>'}</table></div>`;
     }
 
     function vCasa() {
       const ev = events(addD(addM(CM + '-01', 1), -1)).filter(o => o.it.scope === 'casa' && o.dt.slice(0, 7) === CM); let a = 0, d = 0, b = 0;
       ev.forEach(o => { if (eff(o) < 0) d += -eff(o); else a += eff(o); b += eff(o); });
-      return `<h2>Despesas residenciais</h2><div class="row"><input type="month" value="${CM}" onchange="CM=this.value;render()"><button class="p" onclick="openForm(null,null,'out','casa')">Nova despesa</button></div><div class="grid">${['Receitas', 'Despesas', 'Saldo'].map((k, i) => `<div class="card"><div class="k">${k}</div><div class="v ${i===2 ? (b<0?'neg':'pos') : ''}">${R(i===0 ? a : i===1 ? d : b)}</div></div>`).join('')}</div><div class="card w"><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Resp.</th><th class="n">Valor</th></tr>${ev.length ? ev.map(o => `<tr><td>${D(o.dt)}</td><td>${esc(o.it.desc)}</td><td>${esc(o.it.cat)}</td><td>${esc(o.it.own)}</td><td class="n ${cl(eff(o))}">${R(Math.abs(eff(o)))}</td></tr>`).join('') : '<tr><td colspan="5"><span class="k">Sem movimentação neste mês.</span></td></tr>'}</table></div>`;
+      return `<h2>Despesas residenciais</h2><div class="row"><input type="month" value="${CM}" onchange="CM=this.value;render()"><button class="p" onclick="openForm(null,null,'out','casa')">Nova despesa</button></div><div class="grid"><div class="card" style="margin:0"><div class="k">Entradas</div><div class="v pos">${R(a)}</div></div><div class="card" style="margin:0"><div class="k">Saídas</div><div class="v neg">${R(d)}</div></div><div class="card" style="margin:0"><div class="k">Saldo</div><div class="v ${b < 0 ? 'neg' : 'pos'}">${R(b)}</div></div></div><div class="card w"><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="n">Valor</th></tr>${ev.map(o => `<tr><td>${D(o.dt)}</td><td>${esc(o.it.desc)}</td><td>${esc(o.it.cat)}</td><td class="n ${eff(o) < 0 ? 'neg' : 'pos'}">${R(eff(o))}</td></tr>`).join('') || '<tr><td colspan="4"><span class="k">Nenhuma despesa no período.</span></td></tr>'}</table></div>`;
     }
 
     function vCart() {
       const ev = events(addM(MS(), 12));
-      return `<h2>Cartões</h2><div class="row"><button class="p" onclick="openCard()">Novo cartão</button></div>${S.cards.map(c => { const mine = ev.filter(o => o.it.card === c.name && eff(o) < 0).reduce((s, o) => s - eff(o), 0); return `<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(c.name)}</b><button class="s" onclick="delCard('${c.id}')">Remover</button></div><div class="k">Limite: ${R(c.limit)} · Fechamento: ${c.close} · Vencimento: ${c.due}</div><div class="v ${mine > c.limit ? 'neg' : 'pos'}">${R(mine)}</div></div>`; }).join('') || '<div class="card"><span class="k">Nenhum cartão cadastrado.</span></div>'}`;
+      return `<h2>Cartões</h2><div class="row"><button class="p" onclick="openCard()">Novo cartão</button></div>${S.cards.map(c => { const mine = ev.filter(o => o.it.card === c.name && eff(o) < 0).reduce((s, o) => s - eff(o), 0); return `<div class="card"><div class="row"><b>${esc(c.name)}</b><span class="k">Limite: ${R(c.limit)}</span></div><div class="k">Uso atual: ${R(mine)}</div></div>`; }).join('') || '<div class="card"><span class="k">Nenhum cartão cadastrado.</span></div>'}`;
     }
 
     function vAj() {
-      return `<h2>Ajustes</h2>
-      <div class="card"><b>Login de acesso</b><div class="row" style="margin-top:8px"><input id="emailNew" type="email" value="${esc(localStorage.getItem(EMAIL_KEY) || DEFAULT_EMAIL)}" placeholder="seu@email.com"><input id="pwNew" type="password" placeholder="Nova senha"><button class="p" onclick="setPasswordFromUI()">Salvar</button></div></div>
-      <div class="card"><b>Saldo inicial</b><div class="row" style="margin-top:8px"><input type="date" id="od" value="${S.open.date}"><input id="ob" value="${(S.open.bal / 100).toFixed(2).replace('.', ',')}"><button class="p" onclick="saveOpen()">Salvar</button></div></div>
-      <div class="card"><b>Dados</b><div class="row" style="margin-top:8px"><button onclick="expJ()">Exportar backup (JSON)</button><label class="s" style="border:1px solid var(--b);border-radius:6px;padding:6px 10px"><input type="file" accept="application/json" onchange="impJ(this.files[0])" style="display:none">Importar backup</label></div></div>`;
+      return `<h2>Ajustes</h2><div class="card"><b>Login de acesso</b><div class="row" style="margin-top:8px"><input id="emailNew" type="email" value="${esc(localStorage.getItem(EMAIL_KEY) || DEFAULT_EMAIL)}" placeholder="seu@email.com"><input id="pwNew" type="password" placeholder="Nova senha"><button class="p" onclick="setPasswordFromUI()">Salvar</button></div></div><div class="card"><b>Saldo inicial</b><div class="row" style="margin-top:8px"><input type="date" id="od" value="${S.open.date}"><input id="ob" value="${(S.open.bal / 100).toFixed(2).replace('.', ',')}"><button class="p" onclick="saveOpen()">Salvar</button></div></div><div class="card"><b>Dados</b><div class="row" style="margin-top:8px"><button onclick="expJ()">Exportar backup (JSON)</button><label class="s" style="border:1px solid var(--b);border-radius:6px;padding:7px 11px;display:inline-block"><input type="file" accept=".json" onchange="impJ(this.files[0])" style="display:none">Importar backup</label></div></div>`;
     }
 
     function setPasswordFromUI() {
@@ -373,9 +359,12 @@
     const SE = (id, l, v) => `<select id="${id}">${opt(l, v)}</select>`;
 
     function openForm(id, dt, kind, scope) {
-      const it = id ? S.items.find(i => i.id === id) : mk({ kind: kind || 'out', scope: scope || 'pessoal', pct: scope === 'casa' ? 50 : 100, own: scope === 'casa' ? 'Compartilhado' : 'Douglas', rec: '', end: '' });
-      const amt = it.ov && dt && it.ov[dt] != null ? it.ov[dt] : it.amt, d = dt || it.date, cs = ['(conta/dinheiro)', ...S.cards.map(c => c.name)];
-      modal(`<h2>${id ? 'Editar' : 'Novo'} lançamento</h2><div class="f">${L('','Tipo',`<select id="fk"><option value="out" ${it.kind === 'out' ? 'selected' : ''}>Despesa</option><option value="in" ${it.kind === 'in' ? 'selected' : ''}>Receita</option><option value="transfer" ${it.kind === 'transfer' ? 'selected' : ''}>Transferência</option></select>`,1)}${L('','Descrição',I('fd',it.desc),1)}${L('','Valor (R$)',I('fa', (amt / 100).toFixed(2).replace('.', ',')), 'text', '')}${L('','Categoria',SE('fc', S.cats, it.cat),1)}${L('','Responsável',SE('fo', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], it.own),1)}${L('','Meio',SE('fm', cs, it.card || '(conta/dinheiro)'),1)}${L('','Escopo',SE('fs', ['pessoal', 'casa'], it.scope),1)}${L('','Data',I('fdt', d, 'date'),1)}${L('','Frequência',SE('fr', ['', 'mensal', 'anual', 'semanal', 'quinzenal'], it.rec),1)}${L('','Fim da recorrência',I('fe', it.end || '' , 'date'),1)}${L('','Percentual da casa',I('fp', it.pct || 100, 'number', 'min="0" max="100"'))}${L('','Baixa no mesmo dia',`<input id="fx" type="checkbox" ${it.done[d] ? 'checked' : ''}>`,1)}</div><div class="row" style="margin-top:12px"><button class="p" onclick="sv('${it.id}','${d}')">Salvar</button><button onclick="closeM()">Cancelar</button></div>`);
+      const it = id ? S.items.find(i => i.id === id) : mk({ kind: kind || 'out', scope: scope || 'pessoal', pct: scope === 'casa' ? 50 : 100, own: scope === 'casa' ? 'Compartilhado' : 'Douglas' });
+      if (!it) return;
+      const amt = it.ov && dt && it.ov[dt] != null ? it.ov[dt] : it.amt;
+      const d = dt || it.date;
+      const cs = ['(conta/dinheiro)', ...S.cards.map(c => c.name)];
+      modal(`<h2>${id ? 'Editar' : 'Novo'} lançamento</h2><div class="f">${L('','Descrição',I('fd', it.desc),1)}${L('','Valor (R$)', I('fa', (amt / 100).toFixed(2).replace('.', ','), 'text'))}${L('','Data', I('fdt', d, 'date'))}${L('','Categoria', SE('fc', S.cats, it.cat))}${L('','Responsável', SE('fo', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], it.own))}${L('','Tipo', SE('fk', ['out', 'in', 'transfer'], it.kind))}${L('','Escopo', SE('fs', ['pessoal', 'casa'], it.scope))}${L('','Meio de pagamento', SE('fm', cs, it.card || '(conta/dinheiro)'))}${L('','Recorrência', SE('fr', ['', 'mensal', 'anual', 'semanal', 'quinzenal'], it.rec))}${L('','Fim da recorrência', I('fe', it.end || '', 'date'))}${L('','Percentual da casa', I('fp', it.pct || 100, 'number', 'min="0" max="100"'))}<div class="row full"><label><input id="fx" type="checkbox" ${it.done[d] ? 'checked' : ''}> Já pago</label><button class="p" onclick="sv('${id || ''}','${d}')">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
     }
 
     function sv(id, dt) {
@@ -431,14 +420,14 @@
     }
 
     function openParc() {
-      modal(`<h2>Nova compra parcelada</h2><div class="f">${L('','Descrição',I('pd',''),1)}${L('','Valor total (R$)',I('pt',''))}${L('','Entrada (R$)',I('pe','0,00'))}${L('','Nº de parcelas',I('pn','1','number'))}${L('','Data 1ª parcela',I('p1', T(), 'date'))}${L('','Categoria',SE('pc', S.cats, 'Outros'),1)}${L('','Responsável',SE('po', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], 'Douglas'),1)}${L('','Cartão',SE('pm', ['(conta/dinheiro)', ...S.cards.map(c => c.name)], '(conta/dinheiro)'),1)}</div><div class="row" style="margin-top:12px"><button class="p" onclick="svParc()">Salvar</button><button onclick="closeM()">Cancelar</button></div>`);
+      modal(`<h2>Nova compra parcelada</h2><div class="f">${L('','Descrição',I('pd',''),1)}${L('','Valor total (R$)',I('pt',''))}${L('','Entrada (R$)',I('pe','0,00'))}${L('','Nº de parcelas',I('pn','1','number','min="1"'))}${L('','Data da 1ª parcela',I('p1', T(), 'date'))}${L('','Categoria',SE('pc', S.cats, 'Cartão'))}${L('','Responsável',SE('po', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], 'Douglas'))}${L('','Meio de pagamento',SE('pm', ['(conta/dinheiro)', ...S.cards.map(c => c.name)], '(conta/dinheiro)'))}<div class="row full"><button class="p" onclick="svParc()">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
     }
 
     function svParc() {
       const g = x => $('#' + x).value, desc = g('pd').trim(), n = Math.max(1, +g('pn') || 1), ent = toC(g('pe')), tot = toC(g('pt')), d1 = g('p1');
       if (!desc || tot <= 0 || !d1) return alert('Informe descrição, valor total e data.');
-      const rest = tot - ent, pv = 0, grp = uid(), b = { cat: g('pc'), own: g('po'), card: g('pm').startsWith('(') ? '' : g('pm'), grp, n };
-      if (ent > 0) S.items.push(mk({ ...b, desc: desc + ' (entrada)', amt: ent, date: d1, kind: 'out', k: 0 }));
+      const rest = tot - ent, grp = uid(), b = { cat: g('pc'), own: g('po'), card: g('pm').startsWith('(') ? '' : g('pm'), grp, n };
+      if (ent > 0) S.items.push(mk({ ...b, desc: desc + ' (entrada)', amt: ent, date: d1, kind: 'out' }));
       for (let k = 1; k <= n; k++) {
         const a = Math.round(rest / n);
         S.items.push(mk({ ...b, desc: `${desc} (parcela)`, amt: a, date: addM(d1, k - 1), kind: 'out', k }));
@@ -448,7 +437,7 @@
     }
 
     function openCard() {
-      modal(`<h2>Novo cartão</h2><div class="f">${L('','Nome',I('cn',''),1)}${L('','Limite (R$)',I('cl',''))}${L('','Dia de fechamento',I('cf','1','number','min="1" max="31"'))}${L('','Dia de vencimento',I('cv','5','number','min="1" max="31"'))}</div><div class="row" style="margin-top:12px"><button class="p" onclick="svCard()">Salvar</button><button onclick="closeM()">Cancelar</button></div>`);
+      modal(`<h2>Novo cartão</h2><div class="f">${L('','Nome',I('cn',''),1)}${L('','Limite (R$)',I('cl',''))}${L('','Dia de fechamento',I('cf','1','number','min="1" max="31"'))}${L('','Dia de vencimento',I('cv','1','number','min="1" max="31"'))}<div class="row full"><button class="p" onclick="svCard()">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
     }
 
     function svCard() {
@@ -564,7 +553,7 @@
     function expC() {
       const ev = S.items.flatMap(i => occ(i, addM(MS(), 24))).sort(cmp);
       const q = x => '"' + String(x).replace(/"/g, '""') + '"';
-      dl('lancamentos-' + T() + '.csv', '\ufeffData;Descrição;Tipo;Categoria;Responsável;Meio;Valor total;Valor Douglas;Situação\n' + ev.map(o => [D(o.dt), q(o.it.desc), o.it.kind, q(o.it.cat), q(o.it.own), q(o.it.card || 'Dinheiro'), q(R(Math.abs(eff(o)))), q(R(Math.abs(eff(o)))), q(st(o))].join(';')).join('\n'), 'text/csv');
+      dl('lancamentos-' + T() + '.csv', '\ufeffData;Descrição;Tipo;Categoria;Responsável;Meio;Valor total;Valor Douglas;Situação\n' + ev.map(o => [D(o.dt), q(o.it.desc), o.it.kind, q(o.it.cat), q(o.it.own), q(o.it.card || ''), q(R(eff(o))), q(R(eff(o))), q(st(o))].join(';')).join('\n'), 'text/csv');
     }
 
     function seed() {
