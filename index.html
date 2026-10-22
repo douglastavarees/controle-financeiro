@@ -27,6 +27,7 @@
     .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}h2{margin:4px 0 10px;font-size:19px}
     .lock{position:fixed;inset:0;background:rgba(12,15,20,.82);display:flex;align-items:center;justify-content:center;z-index:30;padding:20px}
     .lock-box{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:24px;max-width:420px;width:100%}
+    #lockScreen{display:none!important}
     .hid{display:none!important}
   </style>
 </head>
@@ -235,6 +236,9 @@
     function go(i) { tab = i; render(); }
 
     function render() {
+      const lock = $('#lockScreen');
+      if (lock) lock.classList.add('hid');
+
       if (!localStorage.getItem(EMAIL_KEY) || !localStorage.getItem(PASSWORD_KEY)) {
         localStorage.setItem(EMAIL_KEY, DEFAULT_EMAIL);
         localStorage.setItem(PASSWORD_KEY, DEFAULT_PASSWORD);
@@ -364,7 +368,7 @@
       const amt = it.ov && dt && it.ov[dt] != null ? it.ov[dt] : it.amt;
       const d = dt || it.date;
       const cs = ['(conta/dinheiro)', ...S.cards.map(c => c.name)];
-      modal(`<h2>${id ? 'Editar' : 'Novo'} lançamento</h2><div class="f">${L('','Descrição',I('fd', it.desc),1)}${L('','Valor (R$)', I('fa', (amt / 100).toFixed(2).replace('.', ','), 'text'))}${L('','Data', I('fdt', d, 'date'))}${L('','Categoria', SE('fc', S.cats, it.cat))}${L('','Responsável', SE('fo', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], it.own))}${L('','Tipo', SE('fk', ['out', 'in', 'transfer'], it.kind))}${L('','Escopo', SE('fs', ['pessoal', 'casa'], it.scope))}${L('','Meio de pagamento', SE('fm', cs, it.card || '(conta/dinheiro)'))}${L('','Recorrência', SE('fr', ['', 'mensal', 'anual', 'semanal', 'quinzenal'], it.rec))}${L('','Fim da recorrência', I('fe', it.end || '', 'date'))}${L('','Percentual da casa', I('fp', it.pct || 100, 'number', 'min="0" max="100"'))}<div class="row full"><label><input id="fx" type="checkbox" ${it.done[d] ? 'checked' : ''}> Já pago</label><button class="p" onclick="sv('${id || ''}','${d}')">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
+      modal(`<h2>${id ? 'Editar' : 'Novo'} lançamento</h2><div class="f">${L('', 'Descrição', I('fd', it.desc), 1)}${L('', 'Valor (R$)', I('fa', (amt / 100).toFixed(2).replace('.', ','), 'text'))}${L('', 'Data', I('fdt', d, 'date'))}${L('', 'Categoria', SE('fc', S.cats, it.cat))}${L('', 'Responsável', SE('fo', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], it.own))}${L('', 'Tipo', SE('fk', ['out', 'in', 'transfer'], it.kind))}${L('', 'Escopo', SE('fs', ['pessoal', 'casa'], it.scope))}${L('', 'Meio de pagamento', SE('fm', cs, it.card || '(conta/dinheiro)'))}${L('', 'Recorrência', SE('fr', ['', 'mensal', 'anual', 'semanal', 'quinzenal'], it.rec))}${L('', 'Fim da recorrência', I('fe', it.end || '', 'date'))}${L('', 'Percentual da casa', I('fp', it.pct || 100, 'number', 'min="0" max="100"'))}<div class="row full"><label><input id="fx" type="checkbox" ${it.done[d] ? 'checked' : ''}> Já pago</label><button class="p" onclick="sv('${id || ''}','${d}')">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
     }
 
     function sv(id, dt) {
@@ -420,7 +424,7 @@
     }
 
     function openParc() {
-      modal(`<h2>Nova compra parcelada</h2><div class="f">${L('','Descrição',I('pd',''),1)}${L('','Valor total (R$)',I('pt',''))}${L('','Entrada (R$)',I('pe','0,00'))}${L('','Nº de parcelas',I('pn','1','number','min="1"'))}${L('','Data da 1ª parcela',I('p1', T(), 'date'))}${L('','Categoria',SE('pc', S.cats, 'Cartão'))}${L('','Responsável',SE('po', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], 'Douglas'))}${L('','Meio de pagamento',SE('pm', ['(conta/dinheiro)', ...S.cards.map(c => c.name)], '(conta/dinheiro)'))}<div class="row full"><button class="p" onclick="svParc()">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
+      modal(`<h2>Nova compra parcelada</h2><div class="f">${L('', 'Descrição', I('pd', ''), 1)}${L('', 'Valor total (R$)', I('pt', ''))}${L('', 'Entrada (R$)', I('pe', '0,00'))}${L('', 'Nº de parcelas', I('pn', '1', 'number', 'min="1"'))}${L('', 'Data da 1ª parcela', I('p1', T(), 'date'))}${L('', 'Categoria', SE('pc', S.cats, 'Cartão'))}${L('', 'Responsável', SE('po', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], 'Douglas'))}${L('', 'Meio de pagamento', SE('pm', ['(conta/dinheiro)', ...S.cards.map(c => c.name)], '(conta/dinheiro)'))}<div class="row full"><button class="p" onclick="svParc()">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
     }
 
     function svParc() {
@@ -437,7 +441,7 @@
     }
 
     function openCard() {
-      modal(`<h2>Novo cartão</h2><div class="f">${L('','Nome',I('cn',''),1)}${L('','Limite (R$)',I('cl',''))}${L('','Dia de fechamento',I('cf','1','number','min="1" max="31"'))}${L('','Dia de vencimento',I('cv','1','number','min="1" max="31"'))}<div class="row full"><button class="p" onclick="svCard()">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
+      modal(`<h2>Novo cartão</h2><div class="f">${L('', 'Nome', I('cn', ''), 1)}${L('', 'Limite (R$)', I('cl', ''))}${L('', 'Dia de fechamento', I('cf', '1', 'number', 'min="1" max="31"'))}${L('', 'Dia de vencimento', I('cv', '1', 'number', 'min="1" max="31"'))}<div class="row full"><button class="p" onclick="svCard()">Salvar</button><button onclick="closeM()">Cancelar</button></div></div>`);
     }
 
     function svCard() {
@@ -569,6 +573,8 @@
       if (!localStorage.getItem(KEY)) {
         localStorage.setItem(KEY, JSON.stringify(S));
       }
+      const lock = $('#lockScreen');
+      if (lock) lock.classList.add('hid');
       render();
     }
 
