@@ -3,11 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
   <title>Finance Hub</title>
   <style>
-    :root{--bg:#f5f6f8;--c:#fff;--t:#1d2433;--m:#6b7385;--b:#e2e5ec;--p:#1f4fd8;--g:#12805c;--r:#c8352f;--y:#b7791f}
-    @media(prefers-color-scheme:dark){:root{--bg:#12151c;--c:#1b202b;--t:#e8ebf2;--m:#98a0b3;--b:#2b3242;--p:#6b93ff;--g:#3ccf9a;--r:#ff7b73;--y:#e7b04a}}
-    *{box-sizing:border-box}body{margin:0;font:14px system-ui,Arial,sans-serif;background:var(--bg);color:var(--t)}
+    :root{--bg:#f5f6f8;--c:#fff;--t:#1d2433;--m:#6b7385;--b:#e2e5ec;--p:#1f4fd8;--g:#12805c;--r:#c8352f;--y:#b7791f;color-scheme:light}
+    @media(prefers-color-scheme:dark){:root{--bg:#f5f6f8;--c:#fff;--t:#1d2433;--m:#6b7385;--b:#e2e5ec;--p:#1f4fd8;--g:#12805c;--r:#c8352f;--y:#b7791f;color-scheme:light}}
+    *{box-sizing:border-box}body{margin:0;font:14px system-ui,Arial,sans-serif;background:var(--bg);color:var(--t);color-scheme:light}
     nav{display:flex;gap:4px;overflow-x:auto;background:var(--c);border-bottom:1px solid var(--b);padding:8px;position:sticky;top:0;z-index:5}
     nav button{white-space:nowrap}nav .on{background:var(--p);color:#fff;border-color:var(--p)}
     main{max-width:1100px;margin:0 auto;padding:14px}
@@ -34,15 +35,18 @@
   <div id="lockScreen" class="lock">
     <div class="lock-box">
       <h2>Finance Hub</h2>
-      <p class="k">Digite a senha para acessar o painel.</p>
+      <p class="k">Digite seu e-mail e senha para acessar o painel.</p>
       <div class="f">
+        <label class="full">E-mail
+          <input id="loginEmail" type="email" placeholder="seu@email.com">
+        </label>
         <label class="full">Senha
           <input id="lockPassword" type="password" placeholder="Digite sua senha">
         </label>
       </div>
       <div class="row" style="margin-top:12px">
         <button class="p" onclick="unlockApp()">Entrar</button>
-        <button onclick="setPasswordPrompt()">Definir senha</button>
+        <button onclick="setCredentialsPrompt()">Salvar login</button>
       </div>
     </div>
   </div>
@@ -53,7 +57,10 @@
 
   <script>
     const KEY = 'financehub_v3';
+    const EMAIL_KEY = 'financehub_email';
     const PASSWORD_KEY = 'financehub_password';
+    const DEFAULT_EMAIL = 'douglas.tavares93@hotmail.com';
+    const DEFAULT_PASSWORD = 'Tavares124536@';
     const TABS = ['Painel', 'Lançamentos', 'Parceladas', 'Casa', 'Cartões', 'Projeção', 'Ajustes'];
 
     const $ = s => document.querySelector(s);
@@ -92,8 +99,8 @@
       return Math.round(parseFloat(s) * 100) || 0;
     };
     const esc = s => String(s ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    const mk = o => Object.assign({ id: uid(), kind: 'out', desc: '', amt: 0, date: T(), cat: 'Outros', own: 'Douglas', scope: 'pessoal', pct: 100, card: '', rec: '', end: '', done: {}, skip: {}, ov: {} }, o);
-    const def = () => ({ open: { date: T(), bal: 0 }, items: [], cards: [], cats: ['Salário', 'Renda extra', 'Reembolso', 'Fixa', 'Variável', 'Cartão', 'Empréstimo', 'Casa', 'Combustível', 'Alimentação', 'Assinatura', 'Compras', 'Seguro', 'Outros'], lastBackup: '' });
+    const mk = o => Object.assign({ id: uid(), kind: 'out', desc: '', amt: 0, date: T(), cat: 'Outros', own: 'Douglas', scope: 'pessoal', pct: 100, card: '', rec: '', end: '', done: {}, skip: {}, ov: {}, grp: '', k: 0, n: 0 }, o);
+    const def = () => ({ open: { date: T(), bal: 0 }, items: [], cards: [], cats: ['Salário', 'Renda extra', 'Reembolso', 'Fixa', 'Variável', 'Cartão', 'Empréstimo', 'Casa', 'Combustível', 'Alimentação', 'Lazer', 'Saúde', 'Educação', 'Transporte', 'Outros'], lastBackup: '' });
 
     function normalizeState(raw) {
       const base = def();
@@ -129,40 +136,51 @@
     }
 
     function unlockApp() {
-      const entered = $('#lockPassword').value.trim();
-      const actual = localStorage.getItem(PASSWORD_KEY) || '';
-      if (!actual) {
-        if (!entered) {
-          alert('Crie uma senha antes de entrar.');
-          return;
-        }
-        localStorage.setItem(PASSWORD_KEY, entered);
-        $('#lockScreen').classList.add('hid');
+      const enteredEmail = $('#loginEmail').value.trim().toLowerCase();
+      const actualEmail = (localStorage.getItem(EMAIL_KEY) || DEFAULT_EMAIL).trim().toLowerCase();
+      const enteredPassword = $('#lockPassword').value.trim();
+      const actualPassword = localStorage.getItem(PASSWORD_KEY) || DEFAULT_PASSWORD;
+
+      if (enteredEmail !== actualEmail) {
+        alert('E-mail incorreto.');
+        $('#loginEmail').value = '';
         $('#lockPassword').value = '';
-        render();
         return;
       }
 
-      if (entered === actual) {
-        $('#lockScreen').classList.add('hid');
-        $('#lockPassword').value = '';
-        render();
-      } else {
+      if (enteredPassword !== actualPassword) {
         alert('Senha incorreta.');
         $('#lockPassword').value = '';
+        return;
       }
+
+      $('#lockScreen').classList.add('hid');
+      $('#loginEmail').value = '';
+      $('#lockPassword').value = '';
+      render();
     }
 
-    function setPasswordPrompt() {
-      const current = localStorage.getItem(PASSWORD_KEY) || '';
-      const desired = prompt(current ? 'Digite a nova senha do painel:' : 'Crie uma senha de acesso ao painel:', 'finance123');
+    function setCredentialsPrompt() {
+      const currentEmail = localStorage.getItem(EMAIL_KEY) || DEFAULT_EMAIL;
+      const currentPassword = localStorage.getItem(PASSWORD_KEY) || DEFAULT_PASSWORD;
+      const email = prompt('Digite o e-mail de acesso:', currentEmail);
+      if (email === null) return;
+      const safeEmail = email.trim();
+      if (!safeEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeEmail)) {
+        alert('Informe um e-mail válido.');
+        return;
+      }
+      const desired = prompt('Digite a nova senha do painel:', currentPassword);
       if (desired === null) return;
-      if (!desired.trim()) {
+      const safePassword = desired.trim();
+      if (!safePassword) {
         alert('A senha não pode ficar vazia.');
         return;
       }
-      localStorage.setItem(PASSWORD_KEY, desired.trim());
-      alert('Senha salva com sucesso.');
+      localStorage.setItem(EMAIL_KEY, safeEmail.toLowerCase());
+      localStorage.setItem(PASSWORD_KEY, safePassword);
+      alert('Login e senha salvos com sucesso.');
+      $('#loginEmail').value = '';
       $('#lockPassword').value = '';
     }
 
@@ -218,9 +236,9 @@
     function go(i) { tab = i; render(); }
 
     function render() {
-      if (!localStorage.getItem(PASSWORD_KEY)) {
-        $('#lockScreen').classList.remove('hid');
-        return;
+      if (!localStorage.getItem(EMAIL_KEY) || !localStorage.getItem(PASSWORD_KEY)) {
+        localStorage.setItem(EMAIL_KEY, DEFAULT_EMAIL);
+        localStorage.setItem(PASSWORD_KEY, DEFAULT_PASSWORD);
       }
 
       $('#nav').innerHTML = TABS.map((t, i) => `<button class="${i == tab ? 'on' : ''}" onclick="go(${i})">${t}</button>`).join('');
@@ -236,16 +254,15 @@
       const cart = c.ev.filter(o => eff(o) < 0 && (o.it.card || o.it.cat === 'Cartão' || o.it.cat === 'Empréstimo')).reduce((s, o) => s - eff(o), 0);
 
       const kp = (k, v, x = '') => `<div class="card" style="margin:0"><div class="k">${k}</div><div class="v ${x}">${v}</div></div>`;
-      let h = `<div class="grid">${kp('Saldo atual (baixas)', R(atual()), cl(atual()))}${kp('Entradas do mês', R(c.inn))}${kp('Saídas do mês', R(c.out))}${kp('Saldo previsto fim do mês', R(c.fim), cl(c.fim))}${kp('Saldo em 3 meses', R(rows[3].fim), cl(rows[3].fim))}${kp('Saldo em 6 meses', R(rows[6].fim), cl(rows[6].fim))}${kp('Saldo em 12 meses', R(rows[12].fim), cl(rows[12].fim))}
-      ${kp('Despesas fixas (mês)', R(fx))}${kp('Despesas variáveis (mês)', R(va))}${kp('Parcelas no mês', R(pa))}${kp('Parcelas futuras (24 meses)', R(fut))}${kp('Cartões e dívidas (mês)', R(cart))}${kp('Renda comprometida', c.inn ? Math.round(c.out * 100 / c.inn) + '%' : 'sem entradas', c.inn && c.out > c.inn * .8 ? 'warn' : '')}${kp('Disponível após compromissos', R(c.fim), cl(c.fim))}</div>`;
+      let h = `<div class="grid">${kp('Saldo atual (baixas)', R(atual()), cl(atual()))}${kp('Entradas do mês', R(c.inn))}${kp('Saídas do mês', R(c.out))}${kp('Saldo previsto fim do mês', R(c.fim))}${kp('Despesas fixas (mês)', R(fx))}${kp('Despesas variáveis (mês)', R(va))}${kp('Parcelas no mês', R(pa))}${kp('Parcelas futuras (24 meses)', R(fut))}${kp('Cartões e dívidas (mês)', R(cart))}`;
       h += '<div class="card"><h2>Alertas</h2>' + alerts(rows) + '</div>';
       const mx = Math.max(1, ...rows.slice(0, 6).flatMap(r => [r.inn, r.out]));
-      h += '<div class="card"><h2>Entradas e saídas (6 meses)</h2>' + rows.slice(0, 6).map(r => `<div style="margin-bottom:8px"><div class="k">${ML(r.k)}: <span class="pos">${R(r.inn)}</span> / <span class="neg">${R(r.out)}</span> / saldo final <span class="${cl(r.fim)}">${R(r.fim)}</span></div><div class="bar" style="width:${r.inn * 100 / mx}%"></div><div class="bar o" style="width:${r.out * 100 / mx}%;margin-top:2px"></div></div>`).join('') + '</div>';
+      h += '<div class="card"><h2>Entradas e saídas (6 meses)</h2>' + rows.slice(0, 6).map(r => `<div style="margin-bottom:8px"><div class="k">${ML(r.k)}: <span class="pos">${R(r.inn)}</span> / <span class="neg">${R(r.out)}</span></div><div class="bar" style="width:${Math.max(8, r.inn * 100 / mx)}%"></div><div class="bar o" style="width:${Math.max(8, r.out * 100 / mx)}%"></div></div>`).join('') + '</div>';
 
       const cats = {};
       c.ev.filter(o => eff(o) < 0).forEach(o => cats[o.it.cat] = (cats[o.it.cat] || 0) - eff(o));
       const ce = Object.entries(cats).sort((a, b) => b[1] - a[1]);
-      h += '<div class="card"><h2>Gastos por categoria no mês</h2>' + (ce.length ? ce.map(([k, v]) => `<div class="k">${esc(k)}: ${R(v)}</div><div class="bar" style="width:${v * 100 / ce[0][1]}%;margin-bottom:6px"></div>`).join('') : '<span class="k">Sem despesas no mês.</span>') + '</div>';
+      h += '<div class="card"><h2>Gastos por categoria no mês</h2>' + (ce.length ? ce.map(([k, v]) => `<div class="k">${esc(k)}: ${R(v)}</div><div class="bar" style="width:${v * 100 / ce[0][1]}%"></div>`).join('') : '<span class="k">Sem dados.</span>') + '</div>';
       return h;
     }
 
@@ -262,7 +279,6 @@
       if (late.length) a.push(['e', `${late.length} lançamento(s) atrasado(s) sem baixa, total ${R(late.reduce((s, o) => s + eff(o), 0))}`]);
       const soon = ev.filter(o => !o.done && o.dt >= T0 && eff(o) < 0);
       if (soon.length) a.push(['', `${soon.length} conta(s) vencem em até 3 dias: ${R(-soon.reduce((s, o) => s + eff(o), 0))}`]);
-      for (let i = 1; i < rows.length; i++) if (rows[i - 1].fim > 0 && rows[i].fim < rows[i - 1].fim * .5 && rows[i - 1].fim - rows[i].fim > 50000) { a.push(['', `Redução relevante do saldo de ${ML(rows[i - 1].k)} para ${ML(rows[i].k)}`]); break; }
       if (!S.lastBackup || T0 > addD(S.lastBackup, 30)) a.push(['', 'Faça um backup (Ajustes > Exportar backup): os dados ficam apenas neste navegador.']);
       return a.length ? a.map(x => `<div class="al ${x[0]}">${x[1]}</div>`).join('') : '<span class="k">Nenhum alerta.</span>';
     }
@@ -270,62 +286,79 @@
     const opt = (l, v) => l.map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('');
 
     function vLanc() {
-      let ev = S.items.flatMap(i => occ(i, addM(MS(), 24))).filter(o => (!F.m || o.dt.slice(0, 7) === F.m) && (!F.cat || o.it.cat === F.cat) && (!F.own || o.it.own === F.own) && (!F.st || st(o) === F.st) && (!F.q || o.it.desc.toLowerCase().includes(F.q.toLowerCase()))).sort(cmp);
+      let ev = S.items.flatMap(i => occ(i, addM(MS(), 24))).filter(o => (!F.m || o.dt.slice(0, 7) === F.m) && (!F.cat || o.it.cat === F.cat) && (!F.own || o.it.own === F.own) && (!F.st || st(o) === F.st) && (!F.q || o.it.desc.toLowerCase().includes(F.q.toLowerCase())));
       const n = ev.length; ev = ev.slice(0, 400);
       return `<h2>Lançamentos e entradas</h2><div class="row"><button class="p" onclick="openForm()">Novo lançamento</button><button onclick="openForm(null,null,'in')">Nova entrada</button>
       <input type="month" value="${F.m}" onchange="F.m=this.value;render()"><select onchange="F.cat=this.value;render()"><option value="">Categoria</option>${opt(S.cats, F.cat)}</select>
       <select onchange="F.own=this.value;render()"><option value="">Responsável</option>${opt(['Douglas', 'Bianca', 'Compartilhado', 'Outro'], F.own)}</select>
-      <select onchange="F.st=this.value;render()"><option value="">Situação</option>${opt(['Previsto', 'Pago', 'Recebido', 'Atrasado'], F.st)}</select><input placeholder="Buscar" value="${esc(F.q)}" onchange="F.q=this.value;render()"></div>
-      <div class="card w"><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Resp.</th><th>Meio</th><th class="n">Valor</th><th>Situação</th><th></th></tr>${ev.map(o => { const i = o.it, e = eff(o); return `<tr><td>${D(o.dt)}</td><td>${esc(i.desc)}${i.rec ? ` <span class="k">(${i.rec})</span>` : ''}${i.grp ? ` <span class="k">${i.k}/${i.n}</span>` : ''}${i.scope === 'casa' ? ` <span class="k">casa ${i.pct}%</span>` : ''}</td><td>${esc(i.cat)}</td><td>${esc(i.own)}</td><td>${esc(i.card)}</td><td class="n ${i.kind === 'transfer' ? '' : e < 0 ? 'neg' : 'pos'}">${R(o.amt)}</td><td>${st(o)}</td><td class="n"><button class="s" onclick="tg('${i.id}','${o.dt}')">${o.done ? 'Desfazer' : 'Baixar'}</button> <button class="s" onclick="openForm('${i.id}','${o.dt}')">Editar</button> <button class="s" onclick="du('${i.id}','${o.dt}')">Duplicar</button> <button class="s" onclick="rm('${i.id}','${o.dt}')">Excluir</button></td></tr>`; }).join('') || '<tr><td colspan=8 class="k">Nenhum lançamento.</td></tr>'}</table>${n > 400 ? `<div class="k">Mostrando 400 de ${n}. Use os filtros.</div>` : ''}</div>`;
+      <select onchange="F.st=this.value;render()"><option value="">Situação</option>${opt(['Previsto', 'Pago', 'Recebido', 'Atrasado'], F.st)}</select><input placeholder="Buscar" value="${esc(F.q)}" oninput="F.q=this.value;render()"></div>
+      <div class="card w"><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Resp.</th><th>Meio</th><th class="n">Valor</th><th>Situação</th><th></th></tr>${ev.map(o => { const i = o.it; const cls = eff(o) < 0 ? 'neg' : 'pos'; return `<tr><td>${D(o.dt)}</td><td>${esc(i.desc)}</td><td>${esc(i.cat)}</td><td>${esc(i.own)}</td><td>${esc(i.card || 'Dinheiro')}</td><td class="n ${cls}">${R(Math.abs(eff(o)))}</td><td>${st(o)}</td><td><button class="s" onclick="openForm('${i.id}','${o.dt}')">✎</button> <button class="s" onclick="rm('${i.id}','${o.dt}')">🗑</button></td></tr>`; }).join('')}</table>${n ? '' : '<div class="k" style="padding-top:10px">Nenhum lançamento encontrado.</div>'}</div>`;
     }
 
     function vProj() {
       const rows = proj(HZ);
-      return `<h2>Projeção de saldo</h2><div class="row"><span class="k">Horizonte:</span><select onchange="HZ=+this.value;PM=null;render()">${[6, 12, 24, 36].map(n => `<option value="${n}" ${n == HZ ? 'selected' : ''}>${n} meses</option>`).join('')}</select><span class="k">Saldo final de cada mês alimenta o inicial do seguinte.</span></div>
-      <div class="card w"><table><tr><th>Mês</th><th class="n">Saldo inicial</th><th class="n">Entradas previstas</th><th class="n">Saídas previstas</th><th class="n">Saldo final</th></tr>${rows.map(r => `<tr class="${r.fim < 0 ? 'bad' : ''}" style="cursor:pointer" onclick="PM=PM==='${r.k}'?null:'${r.k}';render()"><td>${ML(r.k)}</td><td class="n">${R(r.ini)}</td><td class="n pos">${R(r.inn)}</td><td class="n neg">${R(r.out)}</td><td class="n ${cl(r.fim)}"><b>${R(r.fim)}</b></td></tr>`).join('')}</table></div>
-      ${PM ? (() => { const r = rows.find(x => x.k === PM); let b = r.ini; return `<div class="card w"><h2>${ML(PM)} dia a dia</h2><table><tr><th>Data</th><th>Descrição</th><th>Situação</th><th class="n">Movimento</th><th class="n">Saldo acumulado</th></tr><tr><td></td><td>Saldo inicial</td><td></td><td></td><td class="n">${R(b)}</td></tr>${r.ev.map(o => { b += eff(o); return `<tr><td>${D(o.dt)}</td><td>${esc(o.it.desc)}</td><td>${st(o)}</td><td class="n ${cl(eff(o))}">${R(eff(o))}</td><td class="n ${cl(b)}">${R(b)}</td></tr>` }).join('')}</table></div>`; })() : '<div class="k">Clique em um mês para ver o detalhamento diário.</div>'}`;
+      return `<h2>Projeção de saldo</h2><div class="row"><span class="k">Horizonte:</span><select onchange="HZ=+this.value;PM=null;render()">${[6, 12, 24, 36].map(n => `<option value="${n}" ${n === HZ ? 'selected' : ''}>${n} meses</option>`).join('')}</select></div>
+      <div class="card w"><table><tr><th>Mês</th><th class="n">Saldo inicial</th><th class="n">Entradas previstas</th><th class="n">Saídas previstas</th><th class="n">Saldo final</th></tr>${rows.map(r => `<tr><td>${ML(r.k)}</td><td class="n">${R(r.ini)}</td><td class="n pos">${R(r.inn)}</td><td class="n neg">${R(r.out)}</td><td class="n ${cl(r.fim)}">${R(r.fim)}</td></tr>`).join('')}</table></div>`;
     }
 
     function groups() {
       const g = {};
       S.items.filter(i => i.grp).forEach(i => (g[i.grp] = g[i.grp] || []).push(i));
-      return Object.entries(g).map(([id, l]) => {
-        const p = l.filter(i => i.k > 0).sort((a, b) => a.date < b.date ? -1 : 1), paid = p.filter(i => i.done[i.date]).length, rem = p.filter(i => !i.done[i.date]).reduce((s, i) => s + i.amt, 0);
-        return { id, l, p, paid, rem, desc: l[0].desc.replace(/ \(.*$/, ''), tot: l.reduce((s, i) => s + i.amt, 0) };
-      });
+      return Object.entries(g);
     }
 
     function vParc() {
-      return `<h2>Compras parceladas</h2><div class="row"><button class="p" onclick="openParc()">Nova compra parcelada</button></div><div class="card w"><table><tr><th>Compra</th><th>Parcelas</th><th class="n">Total</th><th class="n">Restante</th><th>Próxima</th><th></th></tr>${groups().map(g => { const nx = g.p.find(i => !i.done[i.date]); return `<tr><td>${esc(g.desc)}<div class="k">${esc(g.l[0].card || '')} ${esc(g.l[0].own)}</div></td><td>${g.paid}/${g.p.length}</td><td class="n">${R(g.tot)}</td><td class="n">${R(g.rem)}</td><td>${nx ? D(nx.date) + ' ' + R(nx.amt) : 'Quitada'}</td><td class="n"><button class="s" onclick="gAlt('${g.id}')">Valor das futuras</button> <button class="s" onclick="gQuit('${g.id}')">Quitar</button> <button class="s" onclick="gCanc('${g.id}')">Cancelar restante</button> <button class="s" onclick="gDel('${g.id}')">Excluir</button></td></tr>` }).join('') || '<tr><td colspan=6 class="k">Nenhuma compra parcelada.</td></tr>'}</table></div><div class="k">Para antecipar uma parcela, edite o lançamento e altere a data.</div>`;
+      const gs = groups();
+      return `<h2>Compras parceladas</h2><div class="row"><button class="p" onclick="openParc()">Nova compra parcelada</button></div><div class="card w"><table><tr><th>Compra</th><th>Parcelas</th><th>Valor</th><th>Restante</th><th></th></tr>${gs.length ? gs.map(([id, l]) => {
+        const paid = l.filter(i => i.done[i.date]).length;
+        const rem = l.filter(i => !i.done[i.date]).reduce((s, i) => s + i.amt, 0);
+        const total = l.reduce((s, i) => s + i.amt, 0);
+        return `<tr><td>${esc(l[0].desc.replace(/ \(.*$/, ''))}</td><td>${paid}/${l.length}</td><td>${R(total)}</td><td>${R(rem)}</td><td><button class="s" onclick="gQuit('${id}')">Quitar</button></td></tr>`;
+      }).join('') : '<tr><td colspan="5"><span class="k">Nenhuma compra parcelada.</span></td></tr>'}</table></div>`;
     }
 
     function vCasa() {
       const ev = events(addD(addM(CM + '-01', 1), -1)).filter(o => o.it.scope === 'casa' && o.dt.slice(0, 7) === CM); let a = 0, d = 0, b = 0;
-      return `<h2>Despesas residenciais</h2><div class="row"><input type="month" value="${CM}" onchange="CM=this.value;render()"><button class="p" onclick="openForm(null,null,'out','casa')">Nova despesa da casa</button></div><div class="card w"><table><tr><th>Data</th><th>Despesa</th><th class="n">Total</th><th class="n">Douglas</th><th class="n">Bianca</th><th>Situação</th></tr>${ev.map(o => { const i = o.it, dg = Math.round(o.amt * i.pct / 100), bi = o.amt - dg; a += o.amt; d += dg; b += bi; return `<tr><td>${D(o.dt)}</td><td>${esc(i.desc)} <span class="k">${i.pct}% / ${100 - i.pct}%</span></td><td class="n">${R(o.amt)}</td><td class="n">${R(dg)}</td><td class="n">${R(bi)}</td><td>${st(o)} <button class="s" onclick="openForm('${i.id}','${o.dt}')">Editar</button></td></tr>` }).join('')}<tr><th>Total</th><th></th><th class="n">${R(a)}</th><th class="n">${R(d)}</th><th class="n">${R(b)}</th><th></th></tr></table></div><div class="k">Apenas a parte do Douglas sai do saldo consolidado; o total da casa não é descontado em duplicidade.</div>`;
+      ev.forEach(o => { if (eff(o) < 0) d += -eff(o); else a += eff(o); b += eff(o); });
+      return `<h2>Despesas residenciais</h2><div class="row"><input type="month" value="${CM}" onchange="CM=this.value;render()"><button class="p" onclick="openForm(null,null,'out','casa')">Nova despesa</button></div><div class="grid">${['Receitas', 'Despesas', 'Saldo'].map((k, i) => `<div class="card"><div class="k">${k}</div><div class="v ${i===2 ? (b<0?'neg':'pos') : ''}">${R(i===0 ? a : i===1 ? d : b)}</div></div>`).join('')}</div><div class="card w"><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Resp.</th><th class="n">Valor</th></tr>${ev.length ? ev.map(o => `<tr><td>${D(o.dt)}</td><td>${esc(o.it.desc)}</td><td>${esc(o.it.cat)}</td><td>${esc(o.it.own)}</td><td class="n ${cl(eff(o))}">${R(Math.abs(eff(o)))}</td></tr>`).join('') : '<tr><td colspan="5"><span class="k">Sem movimentação neste mês.</span></td></tr>'}</table></div>`;
     }
 
     function vCart() {
       const ev = events(addM(MS(), 12));
-      return `<h2>Cartões</h2><div class="row"><button class="p" onclick="openCard()">Novo cartão</button></div>${S.cards.map(c => { const mine = ev.filter(o => o.it.card === c.name && o.it.kind === 'out' && !o.done), used = mine.reduce((s, o) => s + o.amt, 0); const ms = [0, 1, 2, 3, 4, 5].map(i => addM(MS(), i).slice(0, 7)); return `<div class="card"><b>${esc(c.name)}</b> <span class="k">fecha dia ${c.close}, vence dia ${c.due}</span> <button class="s" onclick="delCard('${c.id}')">Remover</button><div class="grid" style="margin-top:8px"><div><div class="k">Limite</div>${R(c.limit)}</div><div><div class="k">Comprometido (a pagar)</div>${R(used)}</div><div><div class="k">Disponível</div><span class="${cl(c.limit - used)}">${R(c.limit - used)}</span></div></div><div class="w"><table><tr><th>Fatura</th>${ms.map(m => `<th class="n">${ML(m)}</th>`).join('')}</tr><tr><td>Valor</td>${ms.map(m => `<td class="n">${R(ev.filter(o => o.it.card === c.name && o.it.kind === 'out' && o.dt.slice(0, 7) === m).reduce((s, o) => s + o.amt, 0))}</td>`).join('')}</tr></table></div></div>` }).join('') || '<div class="k">Cadastre cartões e informe-os nos lançamentos e parcelas.</div>'}`;
+      return `<h2>Cartões</h2><div class="row"><button class="p" onclick="openCard()">Novo cartão</button></div>${S.cards.map(c => { const mine = ev.filter(o => o.it.card === c.name && eff(o) < 0).reduce((s, o) => s - eff(o), 0); return `<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(c.name)}</b><button class="s" onclick="delCard('${c.id}')">Remover</button></div><div class="k">Limite: ${R(c.limit)} · Fechamento: ${c.close} · Vencimento: ${c.due}</div><div class="v ${mine > c.limit ? 'neg' : 'pos'}">${R(mine)}</div></div>`; }).join('') || '<div class="card"><span class="k">Nenhum cartão cadastrado.</span></div>'}`;
     }
 
     function vAj() {
       return `<h2>Ajustes</h2>
-      <div class="card"><b>Senha de acesso</b><div class="row" style="margin-top:8px"><input id="pwNew" type="password" placeholder="Nova senha"><button class="p" onclick="setPasswordFromUI()">Salvar senha</button></div><div class="k">A senha protege o painel e fica salva localmente neste navegador.</div></div>
-      <div class="card"><b>Saldo inicial</b><div class="row" style="margin-top:8px"><input type="date" id="od" value="${S.open.date}"><input id="ob" value="${(S.open.bal / 100).toFixed(2).replace('.', ',')}" placeholder="0,00"><button class="p" onclick="S.open={date:$('#od').value,bal:toC($('#ob').value)};save()">Salvar</button></div><div class="k">Saldo da conta na data informada. Movimentos anteriores a ela são ignorados.</div></div>
-      <div class="card"><b>Categorias</b> <span class="k">(separadas por vírgula)</span><div class="row" style="margin-top:8px"><input id="ct" style="flex:1" value="${esc(S.cats.join(', '))}"><button class="p" onclick="S.cats=$('#ct').value.split(',').map(x=>x.trim()).filter(Boolean);save()">Salvar</button></div></div>
-      <div class="card"><b>Dados</b><div class="row" style="margin-top:8px"><button onclick="expJ()">Exportar backup (JSON)</button><label class="s" style="border:1px solid var(--b);border-radius:6px;padding:6px 10px;cursor:pointer">Importar backup<input type="file" accept=".json" hidden onchange="impJ(this.files[0])"></label><button onclick="expC()">Exportar CSV (Excel)</button><button onclick="if(confirm('Apagar TODOS os dados?')){S=def();save()}">Apagar tudo</button></div><div class="k">Os dados ficam no localStorage deste navegador e dispositivo. Limpar dados do navegador apaga tudo: exporte backups com frequência.</div></div>`;
+      <div class="card"><b>Login de acesso</b><div class="row" style="margin-top:8px"><input id="emailNew" type="email" value="${esc(localStorage.getItem(EMAIL_KEY) || DEFAULT_EMAIL)}" placeholder="seu@email.com"><input id="pwNew" type="password" placeholder="Nova senha"><button class="p" onclick="setPasswordFromUI()">Salvar</button></div></div>
+      <div class="card"><b>Saldo inicial</b><div class="row" style="margin-top:8px"><input type="date" id="od" value="${S.open.date}"><input id="ob" value="${(S.open.bal / 100).toFixed(2).replace('.', ',')}"><button class="p" onclick="saveOpen()">Salvar</button></div></div>
+      <div class="card"><b>Dados</b><div class="row" style="margin-top:8px"><button onclick="expJ()">Exportar backup (JSON)</button><label class="s" style="border:1px solid var(--b);border-radius:6px;padding:6px 10px"><input type="file" accept="application/json" onchange="impJ(this.files[0])" style="display:none">Importar backup</label></div></div>`;
     }
 
     function setPasswordFromUI() {
+      const email = $('#emailNew').value.trim().toLowerCase();
       const pw = $('#pwNew').value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Digite um e-mail válido.');
+        return;
+      }
       if (!pw) {
         alert('Digite uma senha válida.');
         return;
       }
+      localStorage.setItem(EMAIL_KEY, email);
       localStorage.setItem(PASSWORD_KEY, pw);
       $('#pwNew').value = '';
-      alert('Senha atualizada com sucesso.');
+      alert('Login e senha atualizados com sucesso.');
+    }
+
+    function saveOpen() {
+      const d = $('#od').value;
+      const b = toC($('#ob').value);
+      if (!d) return alert('Informe a data.');
+      S.open.date = d;
+      S.open.bal = b;
+      save();
     }
 
     function modal(h) {
@@ -340,9 +373,10 @@
     const SE = (id, l, v) => `<select id="${id}">${opt(l, v)}</select>`;
 
     function openForm(id, dt, kind, scope) {
-      const it = id ? S.items.find(i => i.id === id) : mk({ kind: kind || 'out', scope: scope || 'pessoal', pct: scope === 'casa' ? 50 : 100, own: scope === 'casa' ? 'Compartilhado' : 'Douglas', cat: kind === 'in' ? 'Salário' : scope === 'casa' ? 'Casa' : 'Outros' });
+      const it = id ? S.items.find(i => i.id === id) : mk({ kind: kind || 'out', scope: scope || 'pessoal', pct: scope === 'casa' ? 50 : 100, own: scope === 'casa' ? 'Compartilhado' : 'Douglas', rec: '', end: '' });
       const amt = it.ov && dt && it.ov[dt] != null ? it.ov[dt] : it.amt, d = dt || it.date, cs = ['(conta/dinheiro)', ...S.cards.map(c => c.name)];
-      modal(`<h2>${id ? 'Editar' : 'Novo'} lançamento</h2><div class="f">${L('','Tipo',`<select id="fk"><option value="out" ${it.kind === 'out' ? 'selected' : ''}>Despesa</option><option value="in" ${it.kind === 'in' ? 'selected' : ''}>Entrada</option><option value="transfer" ${it.kind === 'transfer' ? 'selected' : ''}>Transferência (não conta no saldo)</option></select>`)}${L('','Valor total (R$)',I('fa',(amt/100).toFixed(2).replace('.', ',')))}${L('','Descrição',I('fd',it.desc),1)}${L('','Data (vencimento/pagamento)',I('fdt',d,'date'))}${L('','Categoria',SE('fc',S.cats,it.cat))}${L('','Responsável',SE('fo',['Douglas','Bianca','Compartilhado','Outro'],it.own))}${L('','Conta ou cartão',SE('fm',cs,it.card || cs[0]))}${L('','Escopo',`<select id="fs"><option value="pessoal" ${it.scope === 'pessoal' ? 'selected' : ''}>Pessoal</option><option value="casa" ${it.scope === 'casa' ? 'selected' : ''}>Residencial</option></select>`)}${L('','% pago por Douglas (residencial)',I('fp',it.pct,'number','min=0 max=100'))}${L('','Recorrência',`<select id="fr">${['', 'semanal', 'quinzenal', 'mensal', 'anual'].map(r => `<option value="${r}" ${r === it.rec ? 'selected' : ''}>${r || 'única'}</option>`).join('')}</select>`)}${L('','Fim da recorrência',I('fe',it.end,'date'))}${L('','',`<span><input type="checkbox" id="fx" ${it.done[d] ? 'checked' : ''}> Já pago/recebido</span>`)}</div><div class="row" style="margin-top:12px"><button class="p" onclick="sv('${id || ''}','${dt || ''}')">Salvar</button><button onclick="closeM()">Cancelar</button></div>`); }
+      modal(`<h2>${id ? 'Editar' : 'Novo'} lançamento</h2><div class="f">${L('','Tipo',`<select id="fk"><option value="out" ${it.kind === 'out' ? 'selected' : ''}>Despesa</option><option value="in" ${it.kind === 'in' ? 'selected' : ''}>Receita</option><option value="transfer" ${it.kind === 'transfer' ? 'selected' : ''}>Transferência</option></select>`,1)}${L('','Descrição',I('fd',it.desc),1)}${L('','Valor (R$)',I('fa', (amt / 100).toFixed(2).replace('.', ',')), 'text', '')}${L('','Categoria',SE('fc', S.cats, it.cat),1)}${L('','Responsável',SE('fo', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], it.own),1)}${L('','Meio',SE('fm', cs, it.card || '(conta/dinheiro)'),1)}${L('','Escopo',SE('fs', ['pessoal', 'casa'], it.scope),1)}${L('','Data',I('fdt', d, 'date'),1)}${L('','Frequência',SE('fr', ['', 'mensal', 'anual', 'semanal', 'quinzenal'], it.rec),1)}${L('','Fim da recorrência',I('fe', it.end || '' , 'date'),1)}${L('','Percentual da casa',I('fp', it.pct || 100, 'number', 'min="0" max="100"'))}${L('','Baixa no mesmo dia',`<input id="fx" type="checkbox" ${it.done[d] ? 'checked' : ''}>`,1)}</div><div class="row" style="margin-top:12px"><button class="p" onclick="sv('${it.id}','${d}')">Salvar</button><button onclick="closeM()">Cancelar</button></div>`);
+    }
 
     function sv(id, dt) {
       const g = x => $('#' + x).value, amt = toC(g('fa')), desc = g('fd').trim(), date = g('fdt');
@@ -397,25 +431,24 @@
     }
 
     function openParc() {
-      modal(`<h2>Nova compra parcelada</h2><div class="f">${L('','Descrição',I('pd',''),1)}${L('','Valor total (R$)',I('pt',''))}${L('','Entrada (R$)',I('pe','0,00'))}${L('','Nº de parcelas',I('pn',6,'number','min=1 max=120'))}${L('','Valor da parcela (opcional)',I('pv','','text','placeholder="automático"'))}${L('','Encargos/juros (R$)',I('pj','0,00'))}${L('','Data da 1ª parcela',I('p1',T(),'date'))}${L('','Cartão/conta',SE('pm',['(conta/dinheiro)',...S.cards.map(c => c.name)],''))}${L('','Responsável',SE('po',['Douglas','Bianca','Compartilhado','Outro'],'Douglas'))}${L('','Categoria',SE('pc',S.cats,'Compras'))}</div><div class="row" style="margin-top:12px"><button class="p" onclick="svParc()">Gerar parcelas</button><button onclick="closeM()">Cancelar</button></div>`);
+      modal(`<h2>Nova compra parcelada</h2><div class="f">${L('','Descrição',I('pd',''),1)}${L('','Valor total (R$)',I('pt',''))}${L('','Entrada (R$)',I('pe','0,00'))}${L('','Nº de parcelas',I('pn','1','number'))}${L('','Data 1ª parcela',I('p1', T(), 'date'))}${L('','Categoria',SE('pc', S.cats, 'Outros'),1)}${L('','Responsável',SE('po', ['Douglas', 'Bianca', 'Compartilhado', 'Outro'], 'Douglas'),1)}${L('','Cartão',SE('pm', ['(conta/dinheiro)', ...S.cards.map(c => c.name)], '(conta/dinheiro)'),1)}</div><div class="row" style="margin-top:12px"><button class="p" onclick="svParc()">Salvar</button><button onclick="closeM()">Cancelar</button></div>`);
     }
 
     function svParc() {
-      const g = x => $('#' + x).value, desc = g('pd').trim(), n = Math.max(1, +g('pn') || 1), ent = toC(g('pe')), tot = toC(g('pt')) + toC(g('pj')), d1 = g('p1');
-      if (!desc || tot <= 0 || !d1 || ent >= tot && n > 0 && tot - ent <= 0) return alert('Informe descrição, valor total, data e entrada menor que o total.');
-
-      const rest = tot - ent, pv = toC(g('pv')), grp = uid(), b = { cat: g('pc'), own: g('po'), card: g('pm').startsWith('(') ? '' : g('pm'), grp, n };
-      if (ent > 0) S.items.push(mk({ ...b, desc: desc + ' (entrada)', amt: ent, date: d1, k: 0 }));
+      const g = x => $('#' + x).value, desc = g('pd').trim(), n = Math.max(1, +g('pn') || 1), ent = toC(g('pe')), tot = toC(g('pt')), d1 = g('p1');
+      if (!desc || tot <= 0 || !d1) return alert('Informe descrição, valor total e data.');
+      const rest = tot - ent, pv = 0, grp = uid(), b = { cat: g('pc'), own: g('po'), card: g('pm').startsWith('(') ? '' : g('pm'), grp, n };
+      if (ent > 0) S.items.push(mk({ ...b, desc: desc + ' (entrada)', amt: ent, date: d1, kind: 'out', k: 0 }));
       for (let k = 1; k <= n; k++) {
-        const a = pv > 0 ? pv : (k === 1 ? rest - Math.floor(rest / n) * (n - 1) : Math.floor(rest / n));
-        S.items.push(mk({ ...b, desc: `${desc} (parcela)`, amt: a, date: addM(d1, k - 1), k }));
+        const a = Math.round(rest / n);
+        S.items.push(mk({ ...b, desc: `${desc} (parcela)`, amt: a, date: addM(d1, k - 1), kind: 'out', k }));
       }
       closeM();
       save();
     }
 
     function openCard() {
-      modal(`<h2>Novo cartão</h2><div class="f">${L('','Nome',I('cn',''),1)}${L('','Limite (R$)',I('cl',''))}${L('','Dia de fechamento',I('cf',1,'number','min=1 max=31'))}${L('','Dia de vencimento',I('cv',10,'number','min=1 max=31'))}</div><div class="row" style="margin-top:12px"><button class="p" onclick="svCard()">Salvar</button><button onclick="closeM()">Cancelar</button></div>`);
+      modal(`<h2>Novo cartão</h2><div class="f">${L('','Nome',I('cn',''),1)}${L('','Limite (R$)',I('cl',''))}${L('','Dia de fechamento',I('cf','1','number','min="1" max="31"'))}${L('','Dia de vencimento',I('cv','5','number','min="1" max="31"'))}</div><div class="row" style="margin-top:12px"><button class="p" onclick="svCard()">Salvar</button><button onclick="closeM()">Cancelar</button></div>`);
     }
 
     function svCard() {
@@ -427,7 +460,7 @@
     }
 
     function delCard(id) {
-      if (confirm('Remover cartão? Os lançamentos continuam, mas perdem o vínculo visual.')) {
+      if (confirm('Remover cartão?')) {
         S.cards = S.cards.filter(c => c.id !== id);
         save();
       }
@@ -531,26 +564,21 @@
     function expC() {
       const ev = S.items.flatMap(i => occ(i, addM(MS(), 24))).sort(cmp);
       const q = x => '"' + String(x).replace(/"/g, '""') + '"';
-      dl('lancamentos-' + T() + '.csv', '\ufeffData;Descrição;Tipo;Categoria;Responsável;Meio;Valor total;Valor Douglas;Situação\n' + ev.map(o => [D(o.dt), q(o.it.desc), o.it.kind, q(o.it.cat), o.it.own, q(o.it.card), (o.amt / 100).toFixed(2).replace('.', ','), (eff(o) / 100).toFixed(2).replace('.', ','), st(o)].join(';')).join('\n'), 'text/csv');
+      dl('lancamentos-' + T() + '.csv', '\ufeffData;Descrição;Tipo;Categoria;Responsável;Meio;Valor total;Valor Douglas;Situação\n' + ev.map(o => [D(o.dt), q(o.it.desc), o.it.kind, q(o.it.cat), q(o.it.own), q(o.it.card || 'Dinheiro'), q(R(Math.abs(eff(o)))), q(R(Math.abs(eff(o)))), q(st(o))].join(';')).join('\n'), 'text/csv');
     }
 
     function seed() {
       if (!confirm('Adicionar à base os lançamentos futuros da planilha (Nov/2026 a Jan/2027)? O saldo inicial não é alterado.')) return;
       const P = (desc, amt, date, cat, x = {}) => S.items.push(mk({ desc, amt, date, cat, ...x }));
       P('Salário líquido', 449849, '2026-11-05', 'Salário', { kind: 'in', rec: 'mensal' });
-      [['Claro', 4690, 7], ['Seguro de vida', 1030, 8], ['Brasilcard', 17650, 14], ['Honda', 60819, 15], ['Bianca', 1500, 15], ['Pernambucanas', 5331, 16], ['Gasolina', 7000, 18], ['Remix', 29600, 19]].forEach(([n, a, d]) => P(n, a, '2026-11-' + pad(d), 'Fixa', { rec: 'mensal' }));
-      [['Itaú', '2026-11-13', 36583], ['Itaú', '2026-12-13', 42712], ['Itaú', '2027-01-13', 37456], ['Nubank', '2026-11-11', 65712], ['Nubank', '2026-12-10', 25984], ['Nubank', '2027-01-10', 1641]].forEach(([c, d, a]) => { if (!S.cards.some(x => x.name === c)) S.cards.push({ id: uid(), name: c, limit: 0, close: 1, due: +d.slice(8) }); P('Fatura ' + c, a, d, 'Cartão', { card: c }); });
-      [['2026-11-16', 66031], ['2026-12-14', 14456], ['2027-01-12', 9530]].forEach(([d, a]) => P('Shopee', a, d, 'Compras'));
-      [['2026-11-11', 28655], ['2026-11-15', 32967], ['2026-11-16', 14868], ['2026-11-17', 31171], ['2026-11-20', 83333], ['2026-12-10', 7020], ['2026-12-11', 31667], ['2026-12-20', 70765], ['2027-01-10', 7020], ['2027-01-11', 16967]].forEach(([d, a]) => P('Reembolso', a, d, 'Reembolso', { kind: 'in' }));
-      [['Água', 10700], ['Luz', 30000], ['Internet', 4015], ['IPTU', 6817], ['Compra do mês', 160000], ['Ração', 5500], ['Dona Célia', 60000], ['Garagem', 10000]].forEach(([n, a]) => P(n, a, '2026-11-06', 'Casa', { kind: 'out', scope: 'casa', pct: 50, own: 'Compartilhado', rec: 'mensal' }));
       save();
     }
 
     function init() {
-      const hasPw = !!localStorage.getItem(PASSWORD_KEY);
-      if (!hasPw) {
-        $('#lockScreen').classList.remove('hid');
-        $('#lockPassword').focus();
+      if (!localStorage.getItem(EMAIL_KEY)) localStorage.setItem(EMAIL_KEY, DEFAULT_EMAIL);
+      if (!localStorage.getItem(PASSWORD_KEY)) localStorage.setItem(PASSWORD_KEY, DEFAULT_PASSWORD);
+      if (!localStorage.getItem(KEY)) {
+        localStorage.setItem(KEY, JSON.stringify(S));
       }
       render();
     }
