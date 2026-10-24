@@ -197,7 +197,7 @@ const gi=id=>S.items.filter(i=>i.grp===id);
 function gAlt(id){const v=prompt('Novo valor (R$) das parcelas futuras ainda não pagas:');if(v===null)return;const a=toC(v);if(a<=0)return;gi(id).filter(i=>i.k>0&&!i.done[cdate(i,i.date)]&&cdate(i,i.date)>=T()).forEach(i=>{i.amt=a;});save()}
 function gCanc(id){if(confirm('Cancelar as parcelas ainda não pagas? As já pagas permanecem no histórico.')){S.items=S.items.filter(i=>!(i.grp===id&&i.k>0&&!i.done[cdate(i,i.date)]));save()}}
 function gDel(id){if(confirm('Excluir a compra e todas as parcelas, inclusive as pagas?')){S.items=S.items.filter(i=>i.grp!==id);save()}}
-async function dl(name,txt,type){try{const d=await claude.use('downloads');if(!d){alert('Download indisponível nesta visualização.');return}await d.save({filename:name,data:new Blob([txt],{type})})}catch(e){if(!e||e.code!=='declined')alert('Não foi possível salvar o arquivo.')}}
+function dl(name,txt,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;a.click()}
 function expJ(){S.lastBackup=T();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}dl('financehub-backup-'+T()+'.json',JSON.stringify(S,null,1),'application/json');render()}
 function impJ(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.items||!d.open)throw 0;if(confirm('Substituir os dados atuais pelo backup?')){S=d;save()}}catch(e){alert('Backup inválido.')}};r.readAsText(f)}
 async function copyShareLink(){
@@ -237,7 +237,7 @@ function expCSV(all){const ev=all?S.items.flatMap(i=>occ(i,addM(MS(),24))).sort(
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});$('#modal').addEventListener('mousedown',e=>{if(e.target.id==='modal')closeM()});
 
 /* v4: sincronização online (Supabase) */
-const SUPABASE_URL='COLE_AQUI_A_URL_DO_PROJETO',SUPABASE_KEY='COLE_AQUI_A_CHAVE_ANON_PUBLIC',CLOUD=/^https:\/\//.test(SUPABASE_URL);
+const SUPABASE_URL='https://fapteayqijbntxhjxeuu.supabase.co',SUPABASE_KEY='sb_publishable_Uksl_DijsKDCO1XbZKZP0Q_ZWeO01Ph',CLOUD=/^https:\/\//.test(SUPABASE_URL);
 let SB=null,USER=null,pt=null;
 const ss=t=>{const e=$('#sync');if(e)e.textContent=t};
 function persistState(){S.ts=Date.now();persistState0();push()}
@@ -253,7 +253,7 @@ async function onLogin(u){USER=u;$('#auth').style.display='none';ss('Sincronizan
 async function doAuth(mode){const e=$('#ae').value.trim(),p=$('#ap').value,m=$('#am');m.textContent='';if(!e||p.length<6){m.textContent='Informe e-mail e senha (mínimo 6 caracteres).';return}const r=mode==='up'?await SB.auth.signUp({email:e,password:p}):await SB.auth.signInWithPassword({email:e,password:p});if(r.error){m.textContent=r.error.message;return}if(!r.data.session){m.textContent='Conta criada. Confirme o e-mail recebido e depois clique em Entrar.';return}await onLogin(r.data.user)}
 async function sair(){await SB.auth.signOut();location.reload()}
 async function boot(){if(!CLOUD){ss('Modo local (Supabase não configurado)');return}
- $('#auth').style.display='flex';SB=supabase.createClient(https://fapteayqijbntxhjxeuu.supabase.co/rest/v1/,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhcHRlYXlxaWpibnR4aGp4ZXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NjYxNjYsImV4cCI6MjEwODM0MjE2Nn0.C5mj6VWLocJ9iB6T4FiWDzDHUxisqtq6viEbUEl80-U);
+ $('#auth').style.display='flex';SB=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  const{data:{session}}=await SB.auth.getSession();if(session)await onLogin(session.user);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&USER)pull()})}
 boot();
