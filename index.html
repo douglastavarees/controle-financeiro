@@ -253,7 +253,7 @@ async function onLogin(u){USER=u;$('#auth').style.display='none';ss('Sincronizan
 async function doAuth(mode){const e=$('#ae').value.trim(),p=$('#ap').value,m=$('#am');m.textContent='';if(!e||p.length<6){m.textContent='Informe e-mail e senha (mínimo 6 caracteres).';return}const r=mode==='up'?await SB.auth.signUp({email:e,password:p}):await SB.auth.signInWithPassword({email:e,password:p});if(r.error){m.textContent=r.error.message;return}if(!r.data.session){m.textContent='Conta criada. Confirme o e-mail recebido e depois clique em Entrar.';return}await onLogin(r.data.user)}
 async function sair(){await SB.auth.signOut();location.reload()}
 async function boot(){if(!CLOUD){ss('Modo local (Supabase não configurado)');return}
- $('#auth').style.display='flex';SB=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ $('#auth').style.display='flex';SB=supabase.createClient(https://fapteayqijbntxhjxeuu.supabase.co/rest/v1/,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhcHRlYXlxaWpibnR4aGp4ZXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NjYxNjYsImV4cCI6MjEwODM0MjE2Nn0.C5mj6VWLocJ9iB6T4FiWDzDHUxisqtq6viEbUEl80-U);
  const{data:{session}}=await SB.auth.getSession();if(session)await onLogin(session.user);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&USER)pull()})}
 boot();
