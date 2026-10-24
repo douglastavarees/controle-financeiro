@@ -173,11 +173,10 @@ function openForm(id,dt,kind,scope){const it=id?S.items.find(i=>i.id===id):mk({k
    <div class="quick-actions"><button type="button" onclick="closeM()">Cancelar</button><button type="button" class="p" onclick="sv('${id||''}','${dt||''}')">Salvar</button></div>`;
   modal(form)
 }
-function sv(id,dt){const g=x=>$('#'+x).value,amt=toC(g('fa')),desc=g('fd').trim(),date=g('fdt');if(!desc||amt<=0||!date)return alert('Informe descrição, valor maior que zero e data.');
+function sv(id,dt,ch){const g=x=>$('#'+x).value,amt=toC(g('fa')),desc=g('fd').trim(),date=g('fdt');if(!desc||amt<=0||!date)return alert('Informe descrição, valor maior que zero e data.');
   let pct=Math.min(100,Math.max(0,+g('fp')||0));if(g('fs')==='pessoal')pct=100;
   const o={cred:g('fcr').trim(),kind:g('fk'),desc,amt,date,cat:g('fc'),own:g('fo'),card:g('fm').startsWith('(')?'':g('fm'),scope:g('fs'),pct,rec:g('fr'),end:id?((S.items.find(i=>i.id===id)||{}).end||''):''},dn=$('#fx').checked;
-  const q=!id&&o.rec&&o.card?(+g('fq')||0):0;if(!id&&((o.rec&&q>1)||(!o.rec&&(o.card||(+g('fn')||1)>1))))return svGrp(o,o.rec?q:Math.max(1,Math.min(120,+g('fn')||1)),dn,o.rec);if(!id){const n=mk(o);if(dn)n.done[cdate(n,date)]=true;S.items.push(n)}else{const it=S.items.find(i=>i.id===id);let c='3';
-    if(it.rec){c=prompt('Lançamento recorrente. Aplicar a: 1 = só esta ocorrência, 2 = esta e as futuras, 3 = todas','2');if(!c)return}
+  const q=!id&&o.rec&&o.card?(+g('fq')||0):0;if(!id&&((o.rec&&q>1)||(!o.rec&&(o.card||(+g('fn')||1)>1))))return svGrp(o,o.rec?q:Math.max(1,Math.min(120,+g('fn')||1)),dn,o.rec);if(!id){const n=mk(o);if(dn)n.done[cdate(n,date)]=true;S.items.push(n)}else{const it=S.items.find(i=>i.id===id);let c=ch||'3';if(it.rec&&!ch)return askScope(id,dt);
     if(c==='1'){it.skip[dt]=true;const n=mk({...o,rec:'',end:''});if(dn)n.done[cdate(n,date)]=true;S.items.push(n)}
     else if(c==='2'&&dt!==it.date){it.end=addD(dt,-1);const n=mk(o);['done','skip','ov'].forEach(k=>{Object.keys(it[k]).filter(x=>x>=dt).forEach(x=>{n[k][x]=it[k][x];delete it[k][x]})});if(dn)n.done[cdate(n,date)]=true;S.items.push(n)}
     else{const od=it.done[dt];Object.assign(it,o);if(!it.rec){it.done={};if(dn)it.done[cdate(it,date)]=true;it.ov={}}else if(dn!==!!od){it.done[dt]=dn}}}
@@ -191,8 +190,6 @@ function delCard(id){if(confirm('Remover cartão? Os lançamentos continuam, mas
 /* ações */
 function tg(id,dt){const i=S.items.find(x=>x.id===id);i.done[dt]=!i.done[dt];if(!i.done[dt])delete i.done[dt];save()}
 function du(id,dt){const i=S.items.find(x=>x.id===id);S.items.push(mk({...i,id:uid(),rec:'',end:'',date:dt,amt:i.ov[dt]??i.amt,grp:undefined,k:undefined,n:undefined,done:{},skip:{},ov:{}}));save()}
-function rm(id,dt){const i=S.items.find(x=>x.id===id);let c='3';if(i.rec){c=prompt('Excluir: 1 = só esta ocorrência, 2 = esta e as futuras, 3 = todas','1');if(!c)return}else if(!confirm('Excluir este lançamento?'))return;
-  if(c==='1'&&i.rec)i.skip[dt]=true;else if(c==='2'&&dt!==i.date)i.end=addD(dt,-1);else S.items=S.items.filter(x=>x.id!==id);save()}
 const gi=id=>S.items.filter(i=>i.grp===id);
 function gAlt(id){const v=prompt('Novo valor (R$) das parcelas futuras ainda não pagas:');if(v===null)return;const a=toC(v);if(a<=0)return;gi(id).filter(i=>i.k>0&&!i.done[cdate(i,i.date)]&&cdate(i,i.date)>=T()).forEach(i=>{i.amt=a;});save()}
 function gCanc(id){if(confirm('Cancelar as parcelas ainda não pagas? As já pagas permanecem no histórico.')){S.items=S.items.filter(i=>!(i.grp===id&&i.k>0&&!i.done[cdate(i,i.date)]));save()}}
@@ -297,5 +294,19 @@ function chart(rows){const w=360,h=230,pl=10,pr=10,pt=26,pb=34,v=rows.map(r=>r.f
 function colChart(rows){const w=360,h=220,p=8,pt=22,pb=30,mx=Math.max(1,...rows.flatMap(r=>[r.inn,r.out])),gw=(w-2*p)/rows.length,bw=gw*.36,Y=a=>a*(h-pt-pb)/mx,bar=(X,a,c)=>`<rect x="${X}" y="${h-pb-Y(a)}" width="${bw}" height="${Math.max(1,Y(a))}" rx="3" fill="${c}"/>${a?`<text x="${X+bw/2}" y="${h-pb-Y(a)-5}" font-size="11" font-weight="600" text-anchor="middle" fill="${c}">${fmtK(a)}</text>`:''}`;
  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${rows.map((r,i)=>{const X=p+i*gw+gw*.08;return bar(X,r.inn,'var(--g)')+bar(X+bw+3,r.out,'var(--r)')+`<text x="${X+bw+1.5}" y="${h-10}" font-size="12" text-anchor="middle" fill="var(--m)">${ML(r.k).slice(0,3)}</text>`}).join('')}</svg><div class="k">Verde: entradas | Vermelho: saídas</div><div class="w"><table><tr><th>Mês</th><th class="n">Entradas</th><th class="n">Saídas</th><th class="n">Saldo final</th></tr>${rows.map(r=>`<tr><td>${ML(r.k)}</td><td class="n pos">${R(r.inn)}</td><td class="n neg">${R(r.out)}</td><td class="n ${cl(r.fim)}">${R(r.fim)}</td></tr>`).join('')}</table></div>`}
 function bars(r){const w=360,h=200,p=8,pt=14,pb=28,mx=Math.max(1,...r.map(x=>x.a+x.b)),bw=(w-2*p)/r.length,st=Math.ceil(r.length/8);return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${r.map((x,i)=>{const ha=x.a*(h-pt-pb)/mx,hb=x.b*(h-pt-pb)/mx,X=p+i*bw+bw*.12,W=bw*.76;return `<rect x="${X}" y="${h-pb-ha}" width="${W}" height="${ha}" fill="var(--p)"/><rect x="${X}" y="${h-pb-ha-hb}" width="${W}" height="${hb}" fill="var(--y)"/>${i%st?'':`<text x="${X+W/2}" y="${h-10}" font-size="11" text-anchor="middle" fill="var(--m)">${x.l}</text>`}${r.length<=8?`<text x="${X+W/2}" y="${h-pb-ha-hb-4}" font-size="10" text-anchor="middle" fill="var(--t)">${fmtK(x.a+x.b)}</text>`:''}`}).join('')}</svg><div class="k">Azul: casa | Amarelo: demais despesas</div>`}
+
+function rm(id,dt){const i=S.items.find(x=>x.id===id);if(!i)return;
+ if(!i.rec&&!i.grp){if(confirm('Excluir este lançamento?')){S.items=S.items.filter(x=>x.id!==id);save()}return}
+ const nf=i.grp?S.items.filter(x=>x.grp===i.grp&&x.date>=i.date).length:0;
+ modal(`<h2>Excluir lançamento</h2><div class="k" style="margin-bottom:10px">${esc(i.desc)}${i.grp?` | ${nf} parcela(s) desta em diante`:''}</div><div class="row"><button onclick="rmDo('${id}','${dt}',1)">Só esta</button><button onclick="rmDo('${id}','${dt}',2)">Esta e as futuras</button><button onclick="rmDo('${id}','${dt}',3)">Todas (inclusive as pagas)</button><button onclick="closeM()">Cancelar</button></div>`)}
+function rmDo(id,dt,c){const i=S.items.find(x=>x.id===id);if(!i)return;
+ if(i.grp){const g=S.items.filter(x=>x.grp===i.grp),d=c===1?[i]:c===2?g.filter(x=>x.date>=i.date):g;S.items=S.items.filter(x=>!d.includes(x))}
+ else if(c===1)i.skip[dt]=true;else if(c===2&&dt!==i.date)i.end=addD(dt,-1);else S.items=S.items.filter(x=>x.id!==id);
+ closeM();save()}
+
+function askScope(id,dt){let e=$('#scope');if(!e){e=document.createElement('div');e.id='scope';e.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20';document.body.appendChild(e)}
+ e.innerHTML=`<div class="card" style="width:100%;max-width:420px;margin:0"><h2>Aplicar alteração a</h2><div class="k" style="margin-bottom:10px">Este lançamento é recorrente.</div><div class="row"><button class="p" onclick="scopeGo('${id}','${dt}','2')">Esta e as futuras</button><button onclick="scopeGo('${id}','${dt}','1')">Só esta ocorrência</button><button onclick="scopeGo('${id}','${dt}','3')">Todas</button><button onclick="$('#scope').remove()">Cancelar</button></div></div>`}
+function scopeGo(id,dt,c){$('#scope').remove();sv(id,dt,c)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const x=$('#scope');if(x)x.remove()}});
 render();
 </script></body></html>
