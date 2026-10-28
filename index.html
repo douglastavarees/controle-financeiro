@@ -128,7 +128,7 @@ function proj(n, base=MS()){const ms=base,ev=events(addD(addM(ms,n),-1));let bal
   for(let i=0;i<n;i++){const k=addM(ms,i).slice(0,7),m=ev.filter(o=>o.dt.slice(0,7)===k);
    const inn=m.reduce((s,o)=>s+Math.max(eff(o),0),0),out=m.reduce((s,o)=>s+Math.max(-eff(o),0),0);
    rows.push({k,ini:bal,inn,out,fim:bal+inn-out,ev:m});bal+=inn-out}return rows}
-const atual=()=>S.open.bal+events(T()).filter(o=>o.done).reduce((s,o)=>s+eff(o),0);
+const atual=()=>S.open.bal+events(addM(MS(),24)).filter(o=>o.done).reduce((s,o)=>s+eff(o),0);
 const st=o=>o.done?(o.it.kind==='in'?'Recebido':'Pago'):o.dt<T()?'Atrasado':'Previsto';
 const cl=v=>v<0?'neg':'pos';
 /* views */
