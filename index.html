@@ -2,7 +2,7 @@
 <style>
 :root{--bg:#f5f6f8;--c:#fff;--t:#1d2433;--m:#6b7385;--b:#e2e5ec;--p:#1f4fd8;--g:#12805c;--r:#c8352f;--y:#b7791f}
 @media(prefers-color-scheme:dark){:root{--bg:#0d1017;--c:#262d3f;--t:#e8ebf2;--m:#98a0b3;--b:#3b4560;--p:#6b93ff;--g:#3ccf9a;--r:#ff7b73;--y:#e7b04a}}
-*{box-sizing:border-box}body{margin:0;font:14px system-ui,Arial,sans-serif;background:var(--bg);color:var(--t)}
+*{box-sizing:border-box}body{padding-bottom:34px;margin:0;font:14px system-ui,Arial,sans-serif;background:var(--bg);color:var(--t)}
 nav{display:flex;gap:4px;overflow-x:auto;background:var(--c);border-bottom:1px solid var(--b);padding:8px;position:sticky;top:0;z-index:5}
 nav button{white-space:nowrap}nav .on{background:var(--p);color:#fff;border-color:var(--p)}
 main{max-width:1100px;margin:0 auto;padding:14px}
@@ -11,7 +11,7 @@ button{cursor:pointer}button.p{background:var(--p);color:#fff;border-color:var(-
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
 .card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:12px;margin-bottom:12px}
 .k{color:var(--m);font-size:12px}.v{font-size:20px;font-weight:600;margin-top:2px}
-.pos{color:var(--g)}.neg{color:var(--r)}.warn{color:var(--y)}
+.pos{color:var(--g)}.neg{color:var(--r)}
 table{width:100%;border-collapse:collapse}th,td{padding:6px 8px;border-bottom:1px solid var(--b);text-align:left}th{color:var(--m);font-weight:500;font-size:12px}
 td.n,th.n{text-align:right;white-space:nowrap}tr.bad td{background:rgba(200,53,47,.08)}.w{overflow-x:auto}
 .bar{height:8px;border-radius:4px;background:var(--p);min-width:1px}.bar.o{background:var(--r)}
@@ -42,7 +42,7 @@ tr.hl{outline:2px solid var(--p);outline-offset:-2px}tr.hl td{background:rgba(10
 @media print{nav,.row,#modal,button{display:none!important}body{background:#fff;color:#000}}
 </style></head><body><nav id="nav"></nav><main id="app"></main><div id="modal"></div>
 <div id="auth" style="display:none;position:fixed;inset:0;z-index:99;background:var(--bg);align-items:center;justify-content:center;padding:16px"><div class="card" style="width:100%;max-width:360px"><h2>Finance Hub</h2><div class="k" style="margin-bottom:10px">Entre para acessar seus dados em qualquer aparelho.</div><input id="ae" type="email" placeholder="E-mail" autocomplete="username" style="width:100%;margin-bottom:8px"><input id="ap" type="password" placeholder="Senha (mín. 6 caracteres)" autocomplete="current-password" style="width:100%;margin-bottom:10px" onkeydown="if(event.key==='Enter')doAuth('in')"><div class="row"><button class="p" onclick="doAuth('in')">Entrar</button><button onclick="doAuth('up')">Criar conta</button></div><div id="am" class="k neg" style="margin-top:8px"></div></div></div>
-<div id="sync" style="position:fixed;right:10px;bottom:8px;font-size:11px;color:var(--m)"></div>
+<div id="sync" style="position:fixed;right:10px;bottom:8px;font-size:11px;color:var(--m);background:var(--c);border:1px solid var(--b);border-radius:10px;padding:2px 8px;opacity:.92;pointer-events:none"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const KEY='financehub_v2',TABS=['Painel','Lançamentos','Parceladas','Casa','Cartões','Projeção','Saldo diário','Planejamento','Análise','Ajustes'];
@@ -86,17 +86,9 @@ function readStateFromStorage(){
   }
 }
 
-function loadState(){
-  const fromHash = readStateFromHash();
-  if (fromHash) return fromHash;
-  const fromStorage = readStateFromStorage();
-  if (fromStorage) return fromStorage;
-  return def();
-}
-
 let S=(readStateFromStorage()||readStateFromHash()||def());
 if(location.hash)history.replaceState({},'',location.pathname);
-let tab=0,F={m:'',cat:'',own:'',st:'',q:''},CM=T().slice(0,7),PMonth=T().slice(0,7),PM=null;
+let tab=0,F={m:'',cat:'',own:'',st:'',q:''},CM=T().slice(0,7),PMonth=T().slice(0,7);
 
 function updateShareLink(){return;
   try {
@@ -137,7 +129,6 @@ function render(){fixOpen();$('#nav').innerHTML=TABS.map((t,i)=>[2,5,8].includes
   $('#app').innerHTML=(tab<4&&tab!=2?QA():'')+[vPainel,vLanc,vParc,vCasa,vCart,()=>'',vDia,vPlano,()=>'',vAj][tab]()}
 function vPainel0(){const rows=proj(13,PMonth+'-01'),c=rows[0],T0=T();let h='';
   const fx=c.ev.filter(o=>eff(o)<0&&o.it.rec).reduce((s,o)=>s-eff(o),0),pa=c.ev.filter(o=>eff(o)<0&&o.it.grp).reduce((s,o)=>s-eff(o),0),va=c.out-fx-pa;
-  const fut=events(addM(PMonth+'-01',24)).filter(o=>o.it.grp&&o.dt>T0&&eff(o)<0).reduce((s,o)=>s-eff(o),0);
   const cart=c.ev.filter(o=>(eff(o)<0||o.it.advk==='neg')&&o.it.advk!=='pay'&&(o.it.card||o.it.cat==='Cartão'||o.it.cat==='Empréstimo')).reduce((s,o)=>s-eff(o),0);
   const kp=(k,v,x='')=>`<div class="card" style="margin:0"><div class="k">${k}</div><div class="v ${x}">${v}</div></div>`;
   h+=`<div class="row"><input type="month" value="${PMonth}" onchange="PMonth=this.value;render()"></div>`;
@@ -148,7 +139,6 @@ function vPainel0(){const rows=proj(13,PMonth+'-01'),c=rows[0],T0=T();let h='';
   const cats={};c.ev.filter(o=>eff(o)<0).forEach(o=>cats[o.it.cat]=(cats[o.it.cat]||0)-eff(o));const ce=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
   h+='<div class="card"><h2>Gastos por categoria no mês</h2>'+(ce.length?ce.map(([k,v])=>`<div class="k">${esc(k)}: ${R(v)}</div><div class="bar o" style="width:${v*100/ce[0][1]}%;margin-bottom:8px"></div>`).join(''):'<span class="k">Nenhuma despesa.</span>')+'</div>';
   return h}
-const opt=(l,v)=>l.map(x=>`<option ${x===v?'selected':''}>${esc(x)}</option>`).join('');
 function vLanc(){const all=S.items.flatMap(i=>occ(i,addM(MS(),24))).flatMap(o=>[o,...mir(o)]),pass=(o,x)=>(x==='m'||!F.m||o.dt.slice(0,7)===F.m)&&(x==='cat'||mm('cat',v=>o.it.cat===v))&&(x==='own'||mm('own',v=>o.it.own===v))&&(x==='k'||mm('k',v=>o.it.kind===v))&&(x==='cd'||mm('cd',v=>v==='_'?!o.it.card:o.it.card===v))&&(x==='st'||mm('st',v=>st(o)===v))&&(x==='cr'||mm('cr',v=>v==='_'?!o.it.cred:nk(o.it.cred)===v))&&(!F.q||qm(o)),mm=(k,f)=>{const a=fa(k);return !a.length||a.some(f)},uv=(x,f)=>{const c=new Set();all.filter(o=>pass(o,x)).forEach(o=>c.add(f(o)));fa(x).forEach(v=>c.add(v));return [...c].sort().map(v=>[v,v])};let ev=all.filter(o=>pass(o)).sort(cmp);LV=ev;return `<h2>Lançamentos</h2><div class="row"><button onclick="expCSV()">Exportar CSV</button><button onclick="window.print()">PDF / imprimir</button></div><div class="row">${L('','Mês',`<input type="month" value="${F.m}" onchange="F.m=this.value;render()">`,1)}${L('','Tipo',msBtn('k','Tipo',[['in','Receita'],['out','Despesa']]),1)}${L('','Cartão',msBtn('cd','Cartão',[...S.cards.map(c=>[c.name,c.name]),['_','Sem cartão']]),1)}${L('','Pagar a / receber de',msBtn('cr','Pagar a / receber de',[...[...new Set([...S.items.map(i=>nk(i.cred)),...S.items.filter(isDg).map(i=>i.scope==='casa'?'CASA':'BIANCA')].filter(Boolean))].sort().map(v=>[v,v]),['_','Sem credor']]),1)}${L('','Categoria',msBtn('cat','Categoria',uv('cat',o=>o.it.cat)),1)}${L('','Responsável',msBtn('own','Responsável',uv('own',o=>o.it.own)),1)}${L('','Status',msBtn('st','Status',uv('st',o=>st(o))),1)}${L('','Busca',`<input value="${esc(F.q)}" placeholder="Buscar em tudo: nome, valor, data, cartão..." oninput="F.q=this.value;renderKeep(this)">`,1)}</div><div class="k" style="margin:8px 0">${ev.length} lançamento(s) | Despesas (valor cheio): <b>${R(ev.filter(o=>o.it.kind==='out').reduce((a,o)=>a+o.amt,0))}</b> | Receitas: <b>${R(ev.filter(o=>o.it.kind==='in').reduce((a,o)=>a+o.amt,0))}</b></div><div class="card w"><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th class="n">Valor</th><th>Status</th><th>Ações</th></tr>${ev.map(o=>`<tr id="r_${o.it.id}_${o.dt}" class="${!o.done&&o.dt<T()&&eff(o)?'bad':''}"><td>${D(o.dt)}</td><td>${esc(o.it.desc)}${o.it.cred||o.it.card?`<br><span class="k">${o.it.cred?(o.it.kind==='in'?'receber de ':'pagar a ')+esc(o.it.cred):esc(o.it.card)}</span>`:''}</td><td>${esc(o.it.cat)}</td><td>${o.it.kind==='in'?'Receita':'Despesa'}</td><td class="n ${cl(eff(o))}">${R(eff(o))}</td><td>${st(o)}</td><td><button class="s" onclick="tg('${o.it.id}','${o.dt}')">${o.done?'desmarcar':(o.it.kind==='in'?'receber':'pagar')}</button> ${o.it.mirror?'<span class="k">automática (vem da despesa da casa)</span>':`${o.it.rec?`<button class="s" onclick="du('${o.it.id}','${o.dt}')">duplicar</button>`:''} <button class="s" onclick="openForm('${o.it.id}','${o.dt}','${o.it.kind}','${o.it.scope}')">editar</button> <button class="s" onclick="rm('${o.it.id}','${o.dt}')">excluir</button>`}</td></tr>`).join('')||'<tr><td colspan="7">Nenhum lançamento.</td></tr>'}</table></div>`}
 function groups(){const g={};S.items.filter(i=>i.grp).forEach(i=>(g[i.grp]=g[i.grp]||[]).push(i));return Object.entries(g).map(([id,l])=>{const p=l.filter(i=>i.k>0).sort((a,b)=>a.date<b.date?-1:1);return {id,items:l,total:p.reduce((s,i)=>s+i.amt,0),count:p.length,done:p.filter(i=>i.done[cdate(i,i.date)]).length}})}
 function vParc(){return `<h2>Compras parceladas</h2><div class="row"><button class="p" onclick="openParc()">Nova compra parcelada</button></div><div class="card w"><table><tr><th>Compra</th><th>Parcelas</th><th>Valor</th><th>Pago</th><th>Ações</th></tr>${groups().map(g=>`<tr><td>${esc(g.items[0].desc.replace(/ \(parcela\)| \(entrada\)/g,''))}${g.items[0].cred||g.items[0].card?`<br><span class="k">${g.items[0].cred?(g.items[0].kind==='in'?'receber de ':'pagar a ')+esc(g.items[0].cred):esc(g.items[0].card)}</span>`:''}</td><td>${g.count}/${g.items[0].n||g.count}</td><td>${R(g.total)}</td><td>${g.done}/${g.count}</td><td><button class="s" onclick="gAlt('${g.id}')">ajustar</button> <button class="s" onclick="gQuit('${g.id}')">quitar</button> <button class="s" onclick="gCanc('${g.id}')">cancelar</button> <button class="s" onclick="gDel('${g.id}')">excluir</button></td></tr>`).join('')||'<tr><td colspan="5">Nenhuma compra parcelada.</td></tr>'}</table></div>`}
@@ -204,12 +194,6 @@ function gDel(id){if(confirm('Excluir a compra e todas as parcelas, inclusive as
 function dl(name,txt,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;a.click()}
 function expJ(){S.lastBackup=T();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}dl('financehub-backup-'+T()+'.json',JSON.stringify(S,null,1),'application/json');render()}
 function impJ(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.items||!d.open)throw 0;if(confirm('Substituir os dados atuais pelo backup?')){S=d;save()}}catch(e){alert('Backup inválido.')}};r.readAsText(f)}
-async function copyShareLink(){
-  const u=new URL(window.location.href);
-  u.hash='state='+encodeURIComponent(JSON.stringify(S));
-  try{await navigator.clipboard.writeText(u.toString());alert('Link compartilhável copiado! Abra em outro celular ou computador para manter os dados.')}
-  catch(e){alert('Não foi possível copiar automaticamente. Use o botão de exportar backup (JSON) e importe em outro dispositivo.')}
-}
 
 /* v3: melhorias */
 let LV=[];
@@ -238,26 +222,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});$('#modal
 const SUPABASE_URL='https://fapteayqijbntxhjxeuu.supabase.co',SUPABASE_KEY='sb_publishable_Uksl_DijsKDCO1XbZKZP0Q_ZWeO01Ph',CLOUD=/^https:\/\//.test(SUPABASE_URL);
 let SB=null,USER=null,pt=null,LAST=null,dirty=false,READY=false;
 const ss=t=>{const e=$('#sync');if(e)e.textContent=t};
-function persistState(){S.ts=Date.now();persistState0();push()}
-let LOADED=false,CV=null,Q=Promise.resolve();
-function ld(msg,retry){let e=$('#ld');if(!msg){if(e)e.remove();return}if(!e){e=document.createElement('div');e.id='ld';e.style.cssText='position:fixed;inset:0;z-index:98;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;text-align:center';document.body.appendChild(e)}e.innerHTML=`<div class="card" style="max-width:360px;margin:0"><h2>Finance Hub</h2><div class="k" style="margin:8px 0 12px">${msg}</div>${retry?'<button class="p" onclick="boot()">Tentar de novo</button>':''}</div>`}
-function push(){if(!SB||!USER||!LOADED)return;ss('Salvando...');clearTimeout(pt);pt=setTimeout(()=>{pt=null;Q=Q.then(doPush)},1200)}
-async function doPush(){const ts=new Date().toISOString();let r;
- if(CV){r=await SB.from('hub_state').update({data:S,updated_at:ts}).eq('user_id',USER.id).eq('updated_at',CV).select('updated_at');
-  if(!r.error&&!(r.data&&r.data.length)){ss('Atualizando da nuvem...');alert('Outro aparelho alterou os dados. Vou carregar a versão da nuvem. Se precisar, refaça a sua última alteração.');await pull();return}}
- else r=await SB.from('hub_state').insert({user_id:USER.id,data:S,updated_at:ts}).select('updated_at');
- if(r.error){ss('Sem conexão. A última alteração ainda não está na nuvem.');return}CV=(r.data&&r.data[0]&&r.data[0].updated_at)||ts;ss('Sincronizado')}
-async function pull(){if(!SB||!USER)return false;const{data,error}=await SB.from('hub_state').select('data,updated_at').eq('user_id',USER.id).maybeSingle();if(error){ss('Sem conexão com a nuvem');return false}
- if(data){S=Object.assign(def(),data.data);CV=data.updated_at}
- else{const l=readStateFromStorage();S=l&&l.items&&l.items.length&&confirm('A nuvem ainda está vazia. Enviar para ela os dados que estão neste navegador?')?Object.assign(def(),l):def();CV=null}
- LOADED=true;persistState0();render();if(data)ss('Sincronizado');else push();return true}
-async function onLogin(u){USER=u;$('#auth').style.display='none';ld('Carregando seus dados da nuvem...');const ok=await pull();if(ok)ld();else ld('Não consegui conectar à nuvem. Seus dados não foram alterados. Verifique a internet.',1)}
 async function doAuth(mode){const e=$('#ae').value.trim(),p=$('#ap').value,m=$('#am');m.textContent='';if(!e||p.length<6){m.textContent='Informe e-mail e senha (mínimo 6 caracteres).';return}const r=mode==='up'?await SB.auth.signUp({email:e,password:p}):await SB.auth.signInWithPassword({email:e,password:p});if(r.error){m.textContent=r.error.message;return}if(!r.data.session){m.textContent='Conta criada. Confirme o e-mail recebido e depois clique em Entrar.';return}await onLogin(r.data.user)}
 async function sair(){await SB.auth.signOut();try{localStorage.removeItem('financehub_v2')}catch(e){}location.reload()}
-async function boot(){if(!CLOUD){ss('Modo local (Supabase não configurado)');return}
- LOADED=false;S=def();ld('Conectando...');
- try{SB=SB||supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const{data:{session}}=await SB.auth.getSession();if(session)await onLogin(session.user);else{ld();$('#auth').style.display='flex'}}catch(e){ld('Não consegui conectar. Verifique a internet.',1)}}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&USER&&LOADED&&!pt&&$('#modal').style.display!=='flex')pull()});
 boot();
 /* v5: formulário inteligente */
 function mask(el){const d=el.value.replace(/\D/g,'').replace(/^0+/,''),c=d.padStart(3,'0');el.value=c.slice(0,-2).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+c.slice(-2)}
