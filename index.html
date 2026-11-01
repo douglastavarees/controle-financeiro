@@ -112,14 +112,15 @@ function occ0(it,upto){const o=[];for(let k=0;;k++){let dt;
   if(!it.rec&&k>0)break;if(dt>upto||(it.end&&dt>it.end))break;if(it.skip[dt])continue;
   o.push({it,dt,amt:it.ov[dt]!=null?it.ov[dt]:it.amt,done:!!it.done[dt]})}return o}
 const eff=o=>{const i=o.it;if(i.kind==='transfer')return 0;const a=i.scope==='casa'?Math.round(o.amt*i.pct/100):o.amt;return i.kind==='in'?a:-a};
+const late0=o=>o.it.kind==='in'&&!o.done&&o.dt<T(),efc=o=>late0(o)?0:eff(o);
 const cmp=(a,b)=>a.dt<b.dt?-1:a.dt>b.dt?1:0;
 const isDg=i=>i.kind==='out'&&(i.scope==='casa'||i.own==='Bianca')&&/^\s*(cart[aã]o\s+)?douglas\s*$/i.test(i.cred||'');
 const mir=o=>isDg(o.it)?[{...o,it:{...o.it,id:o.it.id+'~r',kind:'in',scope:'pessoal',own:'Douglas',pct:100,cred:o.it.scope==='casa'?'Casa':'Bianca',card:'',grp:undefined,rec:'',mirror:true,desc:o.it.desc.replace(/ \((parcela|entrada|quitação)\)$/,'')+' (repasse)'},done:!!(o.it.rdone&&o.it.rdone[o.dt])}]:[];
 const events=up=>S.items.flatMap(i=>occ(i,up)).flatMap(o=>[o,...mir(o)]).filter(o=>o.dt>=S.open.date).sort(cmp);
 const MS=()=>T().slice(0,7)+'-01';
-function proj(n, base=MS()){const ms=base,ev=events(addD(addM(ms,n),-1));let bal=S.open.bal+ev.filter(o=>o.dt<ms).reduce((s,o)=>s+eff(o),0);const rows=[];
+function proj(n, base=MS()){const ms=base,ev=events(addD(addM(ms,n),-1));let bal=S.open.bal+ev.filter(o=>o.dt<ms).reduce((s,o)=>s+efc(o),0);const rows=[];
   for(let i=0;i<n;i++){const k=addM(ms,i).slice(0,7),m=ev.filter(o=>o.dt.slice(0,7)===k);
-   const inn=m.reduce((s,o)=>s+Math.max(eff(o),0),0),out=m.reduce((s,o)=>s+Math.max(-eff(o),0),0);
+   const inn=m.reduce((s,o)=>s+Math.max(efc(o),0),0),out=m.reduce((s,o)=>s+Math.max(-efc(o),0),0);
    rows.push({k,ini:bal,inn,out,fim:bal+inn-out,ev:m});bal+=inn-out}return rows}
 const atual=()=>S.open.bal+events(addM(MS(),24)).filter(o=>o.done).reduce((s,o)=>s+eff(o),0);
 const st=o=>o.done?(o.it.kind==='in'?'Recebido':'Pago'):o.dt<T()?'Atrasado':'Previsto';
@@ -205,7 +206,7 @@ function occ1(it,upto){const c=it.card&&S.cards.find(x=>x.name===it.card);if(!c)
  return occ0(it,addM(upto,2)).map(o=>{const d=cdate(it,o.dt);return {...o,dt:d,amt:it.ov[d]!=null?it.ov[d]:it.amt,done:!!it.done[d]}}).filter(o=>o.dt<=upto&&!it.skip[o.dt])}
 const QA=()=>`<div class="row"><button class="p" onclick="openForm('','','out',tab===3?'casa':'pessoal')">Nova despesa</button><button class="p" onclick="openForm('','','in','pessoal')">Nova receita</button></div>`;
 function renderKeep(el){const p=el.selectionStart;render();const n=$('#app input[oninput]');if(n){n.focus();n.setSelectionRange(p,p)}}
-function lowest(n){const ms=MS(),ev=events(addD(addM(ms,n),-1));let b=S.open.bal+ev.filter(o=>o.dt<ms).reduce((s,o)=>s+eff(o),0),m={b,d:ms};ev.filter(o=>o.dt>=ms).forEach(o=>{b+=eff(o);if(b<m.b)m={b,d:o.dt}});return m}
+function lowest(n){const ms=MS(),ev=events(addD(addM(ms,n),-1));let b=S.open.bal+ev.filter(o=>o.dt<ms).reduce((s,o)=>s+efc(o),0),m={b,d:ms};ev.filter(o=>o.dt>=ms).forEach(o=>{b+=efc(o);if(b<m.b)m={b,d:o.dt}});return m}
 function vPainel(){return vPainel0()+mlist()}
 function alerts(rows){const a=[],T0=T(),ev=events(addD(T0,3)),neg=rows.find(r=>r.fim<0),lw=lowest(12);
  if(neg)a.push(['e',`Saldo negativo previsto a partir de ${ML(neg.k)} (${R(neg.fim)}). Veja a aba Projeção.`]);else if(lw.b<0)a.push(['e',`O saldo chega a ${R(lw.b)} em ${D(lw.d)} (fica negativo durante o mês). Veja a aba Projeção.`]);
@@ -301,14 +302,14 @@ function dEnd(d,v){return v==='m0'?addD(addM(d.slice(0,8)+'01',1),-1):addD(addM(
 let DM={n:6,s:0};
 const BANDS=[[50000,'rgba(245,196,81,.5)','R$ 0 a R$ 500'],[100000,'rgba(190,210,80,.5)','R$ 500 a R$ 1.000'],[200000,'rgba(120,210,100,.5)','R$ 1.000 a R$ 2.000'],[350000,'rgba(52,211,153,.55)','R$ 2.000 a R$ 3.500'],[500000,'rgba(20,184,166,.6)','R$ 3.500 a R$ 5.000'],[Infinity,'rgba(34,150,220,.6)','acima de R$ 5.000']];
 function bgv(v){return v<0?`rgba(239,68,68,${Math.min(.9,.2+Math.abs(v)/150000)})`:BANDS.find(b=>v<b[0])[1]}
-function vDia(){const ms=addM(MS(),DM.s),n=DM.n,ev=events(addD(addM(ms,n),-1));let b=S.open.bal+ev.filter(o=>o.dt<ms).reduce((s,o)=>s+eff(o),0),mn={b:Infinity,d:ms};const by={};ev.filter(o=>o.dt>=ms).forEach(o=>{(by[o.dt]=by[o.dt]||[]).push(o)});
- const cols=[];for(let k=0;k<n;k++){const m=addM(ms,k),[y,mo]=pd(m),dim=new Date(Date.UTC(y,mo,0)).getUTCDate(),days=[];for(let d=1;d<=dim;d++){const ds=fmt(y,mo,d);(by[ds]||[]).forEach(o=>{b+=eff(o)});if(b<mn.b)mn={b,d:ds};days.push([ds,b])}cols.push({m,days})}
+function vDia(){const ms=addM(MS(),DM.s),n=DM.n,ev=events(addD(addM(ms,n),-1));let b=S.open.bal+ev.filter(o=>o.dt<ms).reduce((s,o)=>s+efc(o),0),mn={b:Infinity,d:ms};const by={};ev.filter(o=>o.dt>=ms).forEach(o=>{(by[o.dt]=by[o.dt]||[]).push(o)});
+ const cols=[];for(let k=0;k<n;k++){const m=addM(ms,k),[y,mo]=pd(m),dim=new Date(Date.UTC(y,mo,0)).getUTCDate(),days=[];for(let d=1;d<=dim;d++){const ds=fmt(y,mo,d);(by[ds]||[]).forEach(o=>{b+=efc(o)});if(b<mn.b)mn={b,d:ds};days.push([ds,b])}cols.push({m,days})}
  const fr=v=>(v/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
  return `<h2>Saldo diário</h2><div class="row"><select onchange="DM.n=+this.value;render()">${[3,6,12].map(v=>`<option value="${v}" ${DM.n===v?'selected':''}>${v} meses</option>`).join('')}</select><select onchange="DM.s=+this.value;render()">${[[-1,'Começar no mês passado'],[0,'Começar neste mês'],[1,'Começar no próximo mês']].map(([v,l])=>`<option value="${v}" ${DM.s===v?'selected':''}>${l}</option>`).join('')}</select></div>
  <div class="k" style="margin:6px 0">Menor saldo no período: <b class="${cl(mn.b)}">${R(mn.b)}</b> em ${D(mn.d)}. Valores em reais com centavos, saldo no fim de cada dia. Toque num dia para ver os lançamentos.</div>
  <div class="k" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px"><span style="background:rgba(239,68,68,.55);padding:2px 8px;border-radius:6px">negativo</span>${BANDS.map(b=>`<span style="background:${b[1]};padding:2px 8px;border-radius:6px">${b[2]}</span>`).join('')}</div>
  <div class="card w" style="padding:8px"><table style="border-collapse:separate;border-spacing:2px;font-size:12px;table-layout:fixed;width:${n*112}px"><colgroup>${cols.map(()=>'<col style="width:26px"><col style="width:82px">').join('')}</colgroup><tr>${cols.map(c=>`<th colspan="2" style="text-align:center;white-space:nowrap">${ML(c.m.slice(0,7))}</th>`).join('')}</tr>${Array.from({length:31},(_,i)=>`<tr>${cols.map(c=>{const x=c.days[i];if(!x)return '<td></td><td></td>';const[ds,v]=x;return `<td style="color:var(--m);text-align:center;padding:4px 2px">${i+1}</td><td onclick="dayInfo('${ds}')" style="background:${bgv(v)};text-align:right;padding:4px 6px;border-radius:5px;cursor:pointer;white-space:nowrap;${ds===T()?'outline:2px solid var(--p)':''}">${fr(v)}</td>`}).join('')}</tr>`).join('')}</table></div>`}
-function dayInfo(ds){const ev=events(ds),b=S.open.bal+ev.reduce((s,o)=>s+eff(o),0),l=ev.filter(o=>o.dt===ds);modal(`<h2>${D(ds)}</h2><div class="k" style="margin-bottom:8px">Saldo no fim do dia: <b class="${cl(b)}">${R(b)}</b></div>${l.map(o=>`<div onclick="closeM();goRow('${o.it.id}','${o.dt}')" style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--b);cursor:pointer"><span>${esc(o.it.desc)}<br><span class="k">${st(o)}</span></span><b class="${cl(eff(o))}">${R(eff(o))}</b></div>`).join('')||'<div class="k">Sem lançamentos neste dia.</div>'}<div class="quick-actions"><button type="button" onclick="closeM()">Fechar</button></div>`)}
+function dayInfo(ds){const ev=events(ds),b=S.open.bal+ev.reduce((s,o)=>s+efc(o),0),l=ev.filter(o=>o.dt===ds);modal(`<h2>${D(ds)}</h2><div class="k" style="margin-bottom:8px">Saldo no fim do dia: <b class="${cl(b)}">${R(b)}</b></div>${l.map(o=>`<div onclick="closeM();goRow('${o.it.id}','${o.dt}')" style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--b);cursor:pointer"><span>${esc(o.it.desc)}<br><span class="k">${st(o)}</span></span><b class="${cl(eff(o))}">${R(eff(o))}</b></div>`).join('')||'<div class="k">Sem lançamentos neste dia.</div>'}<div class="quick-actions"><button type="button" onclick="closeM()">Fechar</button></div>`)}
 
 let PLM=T().slice(0,7);
 function vPlano(){const m=PLM,pl=S.plan||{},invp=pl.inv!=null?pl.inv:20,ev=events(addD(addM(m+'-01',1),-1)).filter(o=>o.dt.slice(0,7)===m&&!o.it.mirror),sm=l=>l.reduce((s,o)=>s+o.amt,0),out=ev.filter(o=>o.it.kind==='out'),isI=o=>/invest|reserva|poupan/i.test(o.it.cat);
