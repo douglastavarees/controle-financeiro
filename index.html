@@ -315,7 +315,7 @@ let PLM=T().slice(0,7);
 function vPlano(){const m=PLM,pl=S.plan||{},invp=pl.inv!=null?pl.inv:20,ev=events(addD(addM(m+'-01',1),-1)).filter(o=>o.dt.slice(0,7)===m&&!o.it.mirror),sm=l=>l.reduce((s,o)=>s+o.amt,0),out=ev.filter(o=>o.it.kind==='out'),isI=o=>/invest|reserva|poupan/i.test(o.it.cat);
  const auto=sm(ev.filter(o=>o.it.kind==='in'&&/sal[aá]rio/i.test(o.it.cat)&&!/13/.test(o.it.desc))),sal=pl.sal||auto,
  casa=Math.round(out.filter(o=>o.it.scope==='casa'&&!isI(o)).reduce((s,o)=>s+o.amt*o.it.pct/100,0)),
- rest=out.filter(o=>o.it.scope!=='casa'&&!isI(o)&&o.it.own==='Douglas'),
+ rest=out.filter(o=>o.it.scope!=='casa'&&!isI(o)&&o.it.own==='Douglas'&&!/^di[aá]rio$/i.test((o.it.cat||'').trim())),
  parc=sm(rest.filter(o=>o.it.grp)),fix=sm(rest.filter(o=>!o.it.grp&&o.it.rec)),avs=sm(rest.filter(o=>!o.it.grp&&!o.it.rec)),oth=parc+fix+avs,
  meta=Math.round(sal*invp/100),invd=sm(out.filter(isI)),inv=Math.max(meta,invd),livre=sal-casa-oth-inv,
  pc=v=>(sal?v*100/sal:0).toFixed(1).replace('.',',')+'%',
@@ -329,7 +329,7 @@ function vPlano(){const m=PLM,pl=S.plan||{},invp=pl.inv!=null?pl.inv:20,ev=event
  ${sal?`<div class="card"><h2>Para onde vai o salário</h2><div style="display:flex;height:24px;border-radius:12px;overflow:hidden;margin:8px 0 12px;background:var(--b)">${segs.filter(x=>x[1]>0).map(x=>`<div style="width:${x[1]*100/tot}%;background:${x[2]}"></div>`).join('')}</div>
  ${line('Salário base',sal,'',0)}${line('Casa (minha parte)',casa,'var(--p)',0)}${line('Outras despesas',oth,'var(--y)',0)}${line('Parcelas',parc,'',1)}${line('Fixas e recorrentes',fix,'',1)}${line('Avulsas',avs,'',1)}${line('Investimento (meta '+String(invp).replace('.',',')+'%)',inv,'var(--g)',0)}${invd?line('já lançado como investimento',invd,'',1):''}
  <div style="padding:10px 0"><b class="${livre<0?'neg':'pos'}">${livre>=0?'Sobra para gastos variáveis':'Passou do planejado'}: ${R(Math.abs(livre))} (${pc(Math.abs(livre))})</b>${livre>0&&left>0?`<div class="k">Dá cerca de ${R(Math.floor(livre/left))} por dia ${cur?'nos '+left+' dias que faltam':'no mês'}.</div>`:''}${livre<0?'<div class="k">Para guardar a meta, as despesas precisam cair esse valor.</div>':''}</div></div>
- <div class="k">Casa é só a sua parte. Só entram despesas com responsável Douglas; despesas da Bianca ou de outras pessoas não entram. Lançamentos com categoria Investimento, Reserva ou Poupança contam como investido.</div>`:'<div class="card"><span class="k">Não encontrei salário neste mês. Informe o salário base acima.</span></div>'}`}
+ <div class="k">Casa é só a sua parte. Só entram despesas com responsável Douglas; despesas da Bianca ou de outras pessoas e lançamentos da categoria Diário não entram. Lançamentos com categoria Investimento, Reserva ou Poupança contam como investido.</div>`:'<div class="card"><span class="k">Não encontrei salário neste mês. Informe o salário base acima.</span></div>'}`}
 
 function vCart(){const ev=events(addM(MS(),12)).filter(o=>o.it.kind==='out'),T0=T(),sum=l=>l.reduce((s,o)=>s+o.amt,0),pk=o=>o.it.scope==='casa'?'c':o.it.own==='Bianca'?'b':o.it.own==='Douglas'?'d':'o',tl=l=>{const t={c:0,b:0,d:0,o:0};l.forEach(o=>{t[pk(o)]+=o.amt});return t},
  tile=(n,v,x='')=>`<div style="flex:1;min-width:0;background:var(--bg);border-radius:10px;padding:8px 4px;text-align:center"><div class="k">${n}</div><div class="${x}" style="font-weight:700;font-size:15px;word-break:break-word">${R(v)}</div></div>`,
