@@ -112,7 +112,7 @@ function occ0(it,upto){const o=[];for(let k=0;;k++){let dt;
   if(!it.rec&&k>0)break;if(dt>upto||(it.end&&dt>it.end))break;if(it.skip[dt])continue;
   o.push({it,dt,amt:it.ov[dt]!=null?it.ov[dt]:it.amt,done:!!it.done[dt]})}return o}
 const eff=o=>{const i=o.it;if(i.kind==='transfer')return 0;const a=i.scope==='casa'?Math.round(o.amt*i.pct/100):o.amt;return i.kind==='in'?a:-a};
-const late0=o=>o.it.kind==='in'&&!o.done&&o.dt<T(),efc=o=>late0(o)?0:eff(o);
+const late0=o=>o.it.kind==='in'&&!o.done&&o.dt<T(),notMine=o=>o.it.kind==='out'&&(o.it.own==='Bianca'||(o.it.scope==='casa'&&o.it.card))&&!isDg(o.it),efh=o=>notMine(o)?0:eff(o),efc=o=>late0(o)||notMine(o)?0:eff(o);
 const cmp=(a,b)=>a.dt<b.dt?-1:a.dt>b.dt?1:0;
 const isDg=i=>i.kind==='out'&&(i.scope==='casa'||i.own==='Bianca')&&/^\s*(cart[aã]o\s+)?douglas\s*$/i.test(i.cred||'');
 const mir=o=>isDg(o.it)?[{...o,it:{...o.it,id:o.it.id+'~r',kind:'in',scope:'pessoal',own:'Douglas',pct:100,cred:o.it.scope==='casa'?'Casa':'Bianca',card:'',grp:undefined,rec:'',mirror:true,desc:o.it.desc.replace(/ \((parcela|entrada|quitação)\)$/,'')+' (repasse)'},done:!!(o.it.rdone&&o.it.rdone[o.dt])}]:[];
@@ -122,7 +122,7 @@ function proj(n, base=MS()){const ms=base,ev=events(addD(addM(ms,n),-1));let bal
   for(let i=0;i<n;i++){const k=addM(ms,i).slice(0,7),m=ev.filter(o=>o.dt.slice(0,7)===k);
    const inn=m.reduce((s,o)=>s+Math.max(efc(o),0),0),out=m.reduce((s,o)=>s+Math.max(-efc(o),0),0);
    rows.push({k,ini:bal,inn,out,fim:bal+inn-out,ev:m});bal+=inn-out}return rows}
-const atual=()=>S.open.bal+events(addM(MS(),24)).filter(o=>o.done).reduce((s,o)=>s+eff(o),0);
+const atual=()=>S.open.bal+events(addM(MS(),24)).filter(o=>o.done).reduce((s,o)=>s+efc(o),0);
 const st=o=>o.done?(o.it.kind==='in'?'Recebido':'Pago'):o.dt<T()?'Atrasado':'Previsto';
 const cl=v=>v<0?'neg':'pos';
 /* views */
@@ -130,15 +130,15 @@ function go(i){tab=i;render()}
 function render(){fixOpen();$('#nav').innerHTML=TABS.map((t,i)=>[2,5,8].includes(i)?'':`<button class="${i==tab?'on':''}" onclick="go(${i})">${t}</button>`).join('');
   $('#app').innerHTML=(tab<4&&tab!=2?QA():'')+[vPainel,vLanc,vParc,vCasa,vCart,()=>'',vDia,vPlano,()=>'',vAj][tab]()}
 function vPainel0(){const rows=proj(13,PMonth+'-01'),c=rows[0],T0=T();let h='';
-  const fx=c.ev.filter(o=>eff(o)<0&&o.it.rec).reduce((s,o)=>s-eff(o),0),pa=c.ev.filter(o=>eff(o)<0&&o.it.grp).reduce((s,o)=>s-eff(o),0),va=c.out-fx-pa;
-  const cart=c.ev.filter(o=>(eff(o)<0||o.it.advk==='neg')&&o.it.advk!=='pay'&&(o.it.card||o.it.cat==='Cartão'||o.it.cat==='Empréstimo')).reduce((s,o)=>s-eff(o),0);
+  const fx=c.ev.filter(o=>efh(o)<0&&o.it.rec).reduce((s,o)=>s-efh(o),0),pa=c.ev.filter(o=>efh(o)<0&&o.it.grp).reduce((s,o)=>s-efh(o),0),va=c.out-fx-pa;
+  const cart=c.ev.filter(o=>(efh(o)<0||o.it.advk==='neg')&&o.it.advk!=='pay'&&(o.it.card||o.it.cat==='Cartão'||o.it.cat==='Empréstimo')).reduce((s,o)=>s-efh(o),0);
   const kp=(k,v,x='')=>`<div class="card" style="margin:0"><div class="k">${k}</div><div class="v ${x}">${v}</div></div>`;
   h+=`<div class="row"><input type="month" value="${PMonth}" onchange="PMonth=this.value;render()"></div>`;
   h+=`<div class="grid">${kp('Saldo atual (baixas)',R(atual()),cl(atual()))}${kp('Entradas do mês',R(c.inn))}${kp('Saídas do mês',R(c.out))}${kp('Saldo previsto fim do mês',R(c.fim),cl(c.fim))}</div>`;
   h+='<div class="card"><h2>Alertas</h2>'+alerts(rows)+'</div>';
   const mx=Math.max(1,...rows.slice(0,6).flatMap(r=>[r.inn,r.out]));
   h+='<div class="card"><h2>Entradas e saídas (6 meses)</h2>'+colChart(rows.slice(0,6))+'</div>';
-  const cats={};c.ev.filter(o=>eff(o)<0).forEach(o=>cats[o.it.cat]=(cats[o.it.cat]||0)-eff(o));const ce=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const cats={};c.ev.filter(o=>efh(o)<0).forEach(o=>cats[o.it.cat]=(cats[o.it.cat]||0)-efh(o));const ce=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
   h+='<div class="card"><h2>Gastos por categoria no mês</h2>'+(ce.length?ce.map(([k,v])=>`<div class="k">${esc(k)}: ${R(v)}</div><div class="bar o" style="width:${v*100/ce[0][1]}%;margin-bottom:8px"></div>`).join(''):'<span class="k">Nenhuma despesa.</span>')+'</div>';
   h+=avgCard('p');
   return h}
@@ -210,9 +210,9 @@ function lowest(n){const ms=MS(),ev=events(addD(addM(ms,n),-1));let b=S.open.bal
 function vPainel(){return vPainel0()+mlist()}
 function alerts(rows){const a=[],T0=T(),ev=events(addD(T0,3)),neg=rows.find(r=>r.fim<0),lw=lowest(12);
  if(neg)a.push(['e',`Saldo negativo previsto a partir de ${ML(neg.k)} (${R(neg.fim)}). Veja a aba Projeção.`]);else if(lw.b<0)a.push(['e',`O saldo chega a ${R(lw.b)} em ${D(lw.d)} (fica negativo durante o mês). Veja a aba Projeção.`]);
- rows.slice(0,6).forEach(r=>{if(!r.out)return;if(r.out>r.inn&&r.fim>=0)a.push(['',`${ML(r.k)}: despesas (${R(r.out)}) superam as receitas (${R(r.inn)})`]);const pa=r.ev.filter(o=>o.it.grp&&eff(o)<0).reduce((s,o)=>s-eff(o),0);if(pa>r.out*.4)a.push(['',`${ML(r.k)}: parcelas são ${Math.round(pa*100/r.out)}% das saídas`]);if(r.inn&&r.out>r.inn*.8&&r.out<=r.inn)a.push(['',`${ML(r.k)}: ${Math.round(r.out*100/r.inn)}% da renda comprometida`])});
- const late=events(addD(T0,-1)).filter(o=>!o.done&&eff(o)!==0);if(late.length)a.push(['e',`${late.length} lançamento(s) atrasado(s) sem baixa, total ${R(late.reduce((s,o)=>s+eff(o),0))}`]);
- const soon=ev.filter(o=>!o.done&&o.dt>=T0&&eff(o)<0);if(soon.length)a.push(['',`${soon.length} conta(s) vencem em até 3 dias: ${R(-soon.reduce((s,o)=>s+eff(o),0))}`]);
+ rows.slice(0,6).forEach(r=>{if(!r.out)return;if(r.out>r.inn&&r.fim>=0)a.push(['',`${ML(r.k)}: despesas (${R(r.out)}) superam as receitas (${R(r.inn)})`]);const pa=r.ev.filter(o=>o.it.grp&&efh(o)<0).reduce((s,o)=>s-efh(o),0);if(pa>r.out*.4)a.push(['',`${ML(r.k)}: parcelas são ${Math.round(pa*100/r.out)}% das saídas`]);if(r.inn&&r.out>r.inn*.8&&r.out<=r.inn)a.push(['',`${ML(r.k)}: ${Math.round(r.out*100/r.inn)}% da renda comprometida`])});
+ const late=events(addD(T0,-1)).filter(o=>!o.done&&efh(o)!==0);if(late.length)a.push(['e',`${late.length} lançamento(s) atrasado(s) sem baixa, total ${R(late.reduce((s,o)=>s+efh(o),0))}`]);
+ const soon=ev.filter(o=>!o.done&&o.dt>=T0&&efh(o)<0);if(soon.length)a.push(['',`${soon.length} conta(s) vencem em até 3 dias: ${R(-soon.reduce((s,o)=>s+efh(o),0))}`]);
  if(!S.lastBackup||addD(S.lastBackup,30)<T0)a.push(['','Faça um backup em Ajustes > Exportar backup.']);
  return a.length?a.map(x=>`<div class="al ${x[0]}">${x[1]}</div>`).join(''):'<span class="k">Nenhum alerta.</span>'}
 function payF(i,d){const n=S.cards[i].name;events(addM(MS(),12)).filter(o=>o.it.card===n&&o.dt===d).forEach(o=>{o.it.done[d]=true});save()}
