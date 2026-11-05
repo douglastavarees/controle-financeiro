@@ -112,7 +112,7 @@ function occ0(it,upto){const o=[];for(let k=0;;k++){let dt;
   if(!it.rec&&k>0)break;if(dt>upto||(it.end&&dt>it.end))break;if(it.skip[dt])continue;
   o.push({it,dt,amt:it.ov[dt]!=null?it.ov[dt]:it.amt,done:!!it.done[dt]})}return o}
 const eff=o=>{const i=o.it;if(i.kind==='transfer')return 0;const a=i.scope==='casa'?Math.round(o.amt*i.pct/100):o.amt;return i.kind==='in'?a:-a};
-const late0=o=>o.it.kind==='in'&&!o.done&&o.dt<T(),notMine=o=>o.it.kind==='out'&&(o.it.own==='Bianca'||(o.it.scope==='casa'&&o.it.card))&&!isDg(o.it),efh=o=>notMine(o)?0:eff(o),efc=o=>late0(o)||notMine(o)?0:eff(o);
+const late0=o=>o.it.kind==='in'&&!o.done&&o.dt<T(),notMine=o=>o.it.kind==='out'&&o.it.own==='Bianca'&&!isDg(o.it),efh=o=>notMine(o)?0:eff(o),efc=o=>late0(o)||notMine(o)?0:eff(o);
 const cmp=(a,b)=>a.dt<b.dt?-1:a.dt>b.dt?1:0;
 const isDg=i=>i.kind==='out'&&(i.scope==='casa'||i.own==='Bianca')&&/^\s*(cart[aã]o\s+)?douglas\s*$/i.test(i.cred||'');
 const mir=o=>isDg(o.it)?[{...o,it:{...o.it,id:o.it.id+'~r',kind:'in',scope:'pessoal',own:'Douglas',pct:100,cred:o.it.scope==='casa'?'Casa':'Bianca',card:'',grp:undefined,rec:'',mirror:true,desc:o.it.desc.replace(/ \((parcela|entrada|quitação)\)$/,'')+' (repasse)'},done:!!(o.it.rdone&&o.it.rdone[o.dt])}]:[];
