@@ -162,12 +162,12 @@ function openForm(id,dt,kind,scope){const it=id?S.items.find(i=>i.id===id):mk({k
      <div class="quick-field full"><label>Descrição</label><input id="fd" value="${esc(it.grp?it.desc.replace(/ \((parcela|entrada|quitação)\)$/,''):it.desc)}" placeholder="Ex.: Supermercado, aluguel..." /></div>
    </div>
    <div class="g2">
-     <div class="quick-field"><label id="fdl">${it.kind==='in'?'Data de recebimento':it.card?'Vencimento da fatura':'Data de vencimento'}</label><input id="fdt" type="date" value="${it.date}" onchange="dtChg();calc()" /></div>
+     <div class="quick-field"><label id="fdl">${it.kind==='in'?'Data de recebimento':it.card?'Vencimento da fatura':'Data de vencimento'}</label><input id="fdt" type="date" value="${id&&dt?dt:it.date}" onchange="dtChg();calc()" /></div>
      <div class="quick-field"><label>Categoria</label><select id="fc">${S.cats.map(x=>`<option ${x===it.cat?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
    </div>
    <div class="g2">
      <div class="quick-field"><label>Cartão/conta</label><select id="fm" onchange="cardChg()"><option value="">Nenhum</option>${S.cards.map(c=>`<option value="${esc(c.name)}" ${it.card===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>${id?'':'<div class="quick-field" id="fnw"><label>Parcelas</label><input id="fn" type="number" min="1" max="120" value="1" oninput="calc()"></div>'}${id&&it.grp?`<div class="k full">Compra parcelada: parcela <b>${it.k||'de entrada'}</b> de <b>${it.n}</b> (${S.items.filter(x=>x.grp===it.grp&&x.k>0&&!x.done[x.date]).length} em aberto). Ao salvar, você escolhe se vale só para esta, para as próximas ou para todas.</div>`:id&&it.rec?`<div class="k full">${it.rec==='diario'?'Previsão diária. Ao salvar, você escolhe se vale só para este dia, para os próximos ou para todos.':`Lançamento recorrente (${esc(it.rec)}). Ao salvar, você escolhe se vale só para esta, para as futuras ou para todas.`}</div>`:''}
-     <div class="quick-field full" id="fcw" style="${it.card?'':'display:none'}"><label>Cobra no cartão em (opcional)</label><input id="fchg" type="date" value="${it.chg||''}"><span class="k">Se for uma data futura, o valor só entra na fatura e no limite do cartão a partir desse dia.</span></div>
+     <div class="quick-field full" id="fcw" style="${it.card?'':'display:none'}"><label>Cobra no cartão em (opcional)</label><input id="fchg" type="date" value="${it.chg?(id&&dt?chgOf(it,dt):it.chg):''}"><span class="k">Se for uma data futura, o valor só entra na fatura e no limite do cartão a partir desse dia.</span></div>
    </div>
    <div class="g2">
      <div class="quick-field"><label>Responsável</label><select id="fo"><option value="Douglas" ${it.own==='Douglas'?'selected':''}>Douglas</option><option value="Bianca" ${it.own==='Bianca'?'selected':''}>Bianca</option><option value="Compartilhado" ${it.own==='Compartilhado'?'selected':''}>Compartilhado</option><option value="Outro" ${it.own==='Outro'?'selected':''}>Outro</option></select></div>
@@ -194,7 +194,7 @@ function sv0(id,dt,ch){const g=x=>$('#'+x).value,amt=toC(g('fa')),desc=g('fd').t
   const q=!id&&o.rec&&o.card?(+g('fq')||0):0;if(!id&&((o.rec&&q>1)||(!o.rec&&(o.card||(+g('fn')||1)>1))))return svGrp(o,o.rec?q:Math.max(1,Math.min(120,+g('fn')||1)),dn,o.rec);if(!id){const n=mk(o);if(dn)n.done[cdate(n,date)]=true;S.items.push(n)}else{const it=S.items.find(i=>i.id===id);if(it.grp){if(!ch)return askScope(id,dt,1);return svEditG(it,o,dn,ch)}let c=ch||'3';if(it.rec&&!ch)return askScope(id,dt);
     if(c==='1'){it.skip[dt]=true;const n=mk({...o,rec:'',end:''});if(dn)n.done[cdate(n,date)]=true;S.items.push(n)}
     else if(c==='2'&&dt!==it.date){it.end=addD(dt,-1);const n=mk(o);['done','skip','ov'].forEach(k=>{Object.keys(it[k]).filter(x=>x>=dt).forEach(x=>{n[k][x]=it[k][x];delete it[k][x]})});if(dn)n.done[cdate(n,date)]=true;S.items.push(n)}
-    else{const od=it.done[dt];Object.assign(it,o);if(!it.rec){it.done={};if(dn)it.done[cdate(it,date)]=true;it.ov={}}else if(dn!==!!od){it.done[dt]=dn}}}
+    else{const od=it.done[dt];Object.assign(it,recSeriesFix(it,{...o},dt));if(!it.rec){it.done={};if(dn)it.done[cdate(it,date)]=true;it.ov={}}else if(dn!==!!od){it.done[dt]=dn}}}
   closeM();save()}
 function openParc(){modal(`<h2>Nova compra parcelada</h2><div class="f">${L('','Descrição',I('pd',''),1)}${L('','Valor total (R$)',I('pt','','text','oninput="mask(this)" inputmode="numeric"'))}${L('','Entrada (R$)',I('pe','0,00','text','oninput="mask(this)" inputmode="numeric"'))}${L('','Nº parcelas',I('pn','1','number'))}${L('','Vencimento da 1ª parcela',I('p1',T(),'date'))}${L('','Categoria',`<select id="pc">${S.cats.map(x=>`<option>${esc(x)}</option>`).join('')}</select>`) }${L('','Responsável',`<select id="po"><option>Douglas</option><option>Bianca</option><option>Compartilhado</option><option>Outro</option></select>`,0,0)}${L('','Cartão/conta',`<select id="pm" onchange="cardChgP()"><option value="">Nenhum</option>${S.cards.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('')}</select>`,0,0)}${L('','Valor por parcela',I('pv','','text','oninput="mask(this)" inputmode="numeric"'))}</div><div class="quick-actions"><button type="button" onclick="closeM()">Cancelar</button><button type="button" class="p" onclick="svParc()">Salvar</button></div>`)}
 function svParc(){const g=x=>$('#'+x).value,desc=g('pd').trim(),n=Math.max(1,+g('pn')||1),ent=toC(g('pe')),tot=toC(g('pt')),d1=g('p1');if(!desc||tot<=0||!d1)return alert('Informe descrição, valor, e primeira parcela.');
@@ -367,6 +367,11 @@ function chgOf(it,dt){if(!it.chg)return'';if(dt===it.date)return it.chg;
  if(['mensal','anual','trimestral','semestral'].includes(it.rec)){const[y1,m1]=pd(dt),[y0,m0]=pd(it.date);return addM(it.chg,(y1*12+m1)-(y0*12+m0))}
  return addD(it.chg,Math.round((new Date(dt)-new Date(it.date))/864e5))}
 const schd=o=>{if(o.done||o.it.kind!=='out'||!o.it.card)return false;const c=chgOf(o.it,o.dt);return !!c&&c>T()};
+/* editando uma ocorrência de série recorrente: a data do formulário é a da ocorrência, não a do início da série */
+function recSeriesFix(it,o,dt){if(!it.rec||!dt)return o;const df=(a,b)=>Math.round((new Date(a)-new Date(b))/864e5),oc=chgOf(it,dt);
+ o.date=o.date===dt?it.date:addD(it.date,df(o.date,dt));
+ if(o.chg){if(o.chg===oc)o.chg=it.chg;else if(oc)o.chg=addD(it.chg,df(o.chg,oc))}
+ return o}
 function vCart(){const ev=events(addM(MS(),12)).filter(o=>o.it.kind==='out'),T0=T(),sum=l=>l.reduce((s,o)=>s+o.amt,0),pk=o=>o.it.scope==='casa'?'c':o.it.own==='Bianca'?'b':o.it.own==='Douglas'?'d':'o',tl=l=>{const t={c:0,b:0,d:0,o:0};l.forEach(o=>{t[pk(o)]+=o.amt});return t},
  tile=(n,v,x='')=>`<div style="flex:1;min-width:0;background:var(--bg);border-radius:10px;padding:8px 4px;text-align:center"><div class="k">${n}</div><div class="${x}" style="font-weight:700;font-size:15px;word-break:break-word">${R(v)}</div></div>`,
  tiles=t=>`<div style="display:flex;gap:6px;margin-top:8px">${tile('Casa',t.c)}${tile('Bianca',t.b)}${tile('Douglas',t.d)}</div>${t.o?`<div class="k" style="margin-top:4px">Outros (compartilhado): ${R(t.o)}</div>`:''}`,
