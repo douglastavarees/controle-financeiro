@@ -131,9 +131,10 @@ const atual=()=>S.open.bal+events(addM(MS(),24)).filter(o=>o.done).reduce((s,o)=
 const st=o=>o.done?(o.it.kind==='in'?'Recebido':'Pago'):o.dt<T()?'Atrasado':'Previsto';
 const cl=v=>v<0?'neg':'pos';
 /* views */
+const NAV=[0,6,1,3,4,7,9];
 function go(i){tab=i;render()}
-function render(){fixOpen();$('#nav').innerHTML=TABS.map((t,i)=>`<button class="${i==tab?'on':''}" onclick="go(${i})">${t}</button>`).join('');
-  $('#app').innerHTML=(tab<4&&tab!=2?QA():'')+[vPainel,vLanc,vParc,vCasa,vCart,vProj,vDia,vPlano,vAnal,vAj][tab]()}
+function render(){fixOpen();$('#nav').innerHTML=TABS.map((t,i)=>({t,i})).filter(x=>NAV.includes(x.i)).sort((x,y)=>NAV.indexOf(x.i)-NAV.indexOf(y.i)).map(({t,i})=>`<button class="${i==tab?'on':''}" onclick="go(${i})">${t}</button>`).join('');
+  $('#app').innerHTML=(tab<4&&tab!=2?QA():'')+[vPainel,vLanc,vParc,vCasa,vCart,()=>'',vDia,vPlano,()=>'',vAj][tab]()}
 function vPainel0(){const rows=proj(13,PMonth+'-01'),c=rows[0],T0=T();let h='';
   const fx=c.ev.filter(o=>efh(o)<0&&o.it.rec).reduce((s,o)=>s-efh(o),0),pa=c.ev.filter(o=>efh(o)<0&&o.it.grp).reduce((s,o)=>s-efh(o),0),va=c.out-fx-pa;
   const cart=c.ev.filter(o=>(efh(o)<0||o.it.advk==='neg')&&o.it.advk!=='pay'&&(o.it.card||o.it.cat==='Cartão'||o.it.cat==='Empréstimo')).reduce((s,o)=>s-efh(o),0);
@@ -260,19 +261,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});$('#modal
 
 /* v4: sincronização online (Supabase) */
 const SUPABASE_URL='https://fapteayqijbntxhjxeuu.supabase.co',SUPABASE_KEY='sb_publishable_Uksl_DijsKDCO1XbZKZP0Q_ZWeO01Ph',CLOUD=/^https:\/\//.test(SUPABASE_URL);
-let SB=null,USER=null,pt=null,READY=false,REV=0,syncing=false,pending=false,CONFLICT=false,VER=0,retryT=null,retryN=0,busyP=false,PJN=12,PX={},LEGACY=false;
+let SB=null,USER=null,pt=null,READY=false,REV=0,syncing=false,pending=false,CONFLICT=false,VER=0,retryT=null,retryN=0,busyP=false,PX={},LEGACY=false;
 const ss=(t,c)=>{const e=$('#sync');if(e){e.textContent=t;e.style.color=c||''}};
 async function doAuth(mode){const e=$('#ae').value.trim(),p=$('#ap').value,m=$('#am');m.textContent='';if(!e||p.length<6){m.textContent='Informe e-mail e senha (mínimo 6 caracteres).';return}const r=mode==='up'?await SB.auth.signUp({email:e,password:p}):await SB.auth.signInWithPassword({email:e,password:p});if(r.error){m.textContent=r.error.message;return}if(!r.data.session){m.textContent='Conta criada. Confirme o e-mail recebido e depois clique em Entrar.';return}await onLogin(r.data.user)}
 async function sair(){if(pending&&!confirm('Há alterações não enviadas à nuvem. Se sair, elas ficam guardadas só neste aparelho. Sair mesmo?'))return;await SB.auth.signOut();try{localStorage.removeItem('financehub_v2')}catch(e){}location.reload()}
 boot();
 
-/* v6: Projeção e Análise (usam proj()/events()/efc existentes; não alteram dados) */
-function vProj(){const rows=proj(PJN),tot=k=>rows.reduce((z,r)=>z+r[k],0),last=rows[rows.length-1],kp=(k,v,x='')=>`<div class="card" style="margin:0"><div class="k">${k}</div><div class="v ${x}">${v}</div></div>`;
- return `<h2>Projeção</h2><div class="row">${[3,6,12].map(n=>`<button class="${PJN==n?'p':''}" onclick="PJN=${n};render()">${n} meses</button>`).join('')}</div><div class="g2">${kp('Saldo inicial',R(rows[0].ini),cl(rows[0].ini))}${kp('Entradas previstas',R(tot('inn')),'pos')}${kp('Despesas previstas',R(tot('out')),'neg')}${kp('Saldo final projetado',R(last.fim),cl(last.fim))}</div><div class="card">${colChart(rows)}</div><div class="card w"><table><tr><th>Mês</th><th class="n">Saldo inicial</th><th class="n">Entradas</th><th class="n">Despesas</th><th class="n">Saldo final</th></tr>${rows.map(r=>`<tr><td>${ML(r.k)}</td><td class="n ${cl(r.ini)}">${R(r.ini)}</td><td class="n pos">${R(r.inn)}</td><td class="n neg">${R(r.out)}</td><td class="n ${cl(r.fim)}"><b>${R(r.fim)}</b></td></tr>`).join('')}</table></div><div class="k">Mesmos critérios do Painel: atrasados a receber, despesas de outros e da casa (já no acerto mensal) ficam fora.</div>`}
-function vAnal(){const N=6,ms=addM(MS(),-(N-1)),ks=[...Array(N)].map((_,i)=>addM(ms,i).slice(0,7)),by={},cat={};ks.forEach(k=>by[k]={inn:0,out:0,pes:0,cas:0});
- events(addD(addM(MS(),1),-1)).filter(o=>o.dt>=ms).forEach(o=>{const v=efc(o),m=by[o.dt.slice(0,7)];if(!m||!v)return;if(v>0)m.inn+=v;else{m.out-=v;if(o.it.agg)m.cas-=v;else m.pes-=v;cat[o.it.cat]=(cat[o.it.cat]||0)-v}});
- const L6=ks.map(k=>by[k]),ti=L6.reduce((z,m)=>z+m.inn,0),to=L6.reduce((z,m)=>z+m.out,0),mx=Math.max(1,...L6.map(m=>Math.max(m.inn,m.out))),cs=Object.entries(cat).sort((a,b)=>b[1]-a[1]),kp=(k,v,x='')=>`<div class="card" style="margin:0"><div class="k">${k}</div><div class="v ${x}">${v}</div></div>`,bar=(v,c)=>`<div style="height:6px;border-radius:3px;background:${c};width:${Math.max(2,Math.round(v*100/mx))}%"></div>`,cur=by[ks[N-1]],prv=by[ks[N-2]],dv=prv.out?Math.round((cur.out-prv.out)*100/prv.out):0;
- return `<h2>Análise</h2><div class="k" style="margin-bottom:8px">Últimos ${N} meses até hoje, nos mesmos critérios do Painel.</div><div class="g2">${kp('Receitas',R(ti),'pos')}${kp('Despesas',R(to),'neg')}${kp('Resultado',R(ti-to),cl(ti-to))}${kp('Taxa de poupança',ti>0?Math.round((ti-to)*100/ti)+'%':'—',cl(ti-to))}${kp('Média mensal de despesas',R(Math.round(to/N)))}${kp('Despesas vs mês anterior',prv.out?(dv>0?'+':'')+dv+'%':'—',dv>0?'neg':'pos')}</div><div class="card w"><table><tr><th>Mês</th><th class="n">Receitas</th><th class="n">Despesas</th><th class="n">Pessoais</th><th class="n">Casa (acerto)</th><th class="n">Resultado</th></tr>${ks.map(k=>{const m=by[k];return `<tr><td>${ML(k)}</td><td class="n pos">${R(m.inn)}${bar(m.inn,'var(--g)')}</td><td class="n neg">${R(m.out)}${bar(m.out,'var(--r)')}</td><td class="n">${R(m.pes)}</td><td class="n">${R(m.cas)}</td><td class="n ${cl(m.inn-m.out)}">${R(m.inn-m.out)}</td></tr>`}).join('')}</table></div><div class="card"><b>Despesas por categoria</b>${cs.map(([c,v])=>`<div style="padding:7px 0;border-bottom:1px solid var(--b)"><div style="display:flex;justify-content:space-between;gap:8px"><span>${esc(c)} <span class="k">${to?Math.round(v*100/to):0}%</span></span><b>${R(v)}</b></div><div style="height:6px;border-radius:3px;margin-top:4px;background:var(--p);width:${Math.max(2,Math.round(v*100/(cs[0][1]||1)))}%"></div></div>`).join('')||'<div class="k">Sem despesas no período.</div>'}</div>`}
 /* v5: formulário inteligente */
 function mask(el){const d=el.value.replace(/\D/g,'').replace(/^0+/,''),c=d.padStart(3,'0');el.value=c.slice(0,-2).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+c.slice(-2)}
 function dtChg(){const x=$('#fx');if(x)x.checked=$('#fdt').value===T()}
